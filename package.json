@@ -1,0 +1,40 @@
+{
+  "name": "guildbuild_discord",
+  "version": "1.0.0",
+  "description": "A discord bot to handle building a guild structure for any game that you're playing",
+  "main": "dist/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx tsc",
+    "start": "node .",
+    "dev": "nodemon src/app.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/ksun4176/GuildBuild_Discord.git"
+  },
+  "keywords": [
+    "discord",
+    "guild",
+    "build",
+    "bot",
+    "players"
+  ],
+  "author": "Kai",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ksun4176/GuildBuild_Discord/issues"
+  },
+  "homepage": "https://github.com/ksun4176/GuildBuild_Discord#readme",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.12.13",
+    "nodemon": "^3.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
