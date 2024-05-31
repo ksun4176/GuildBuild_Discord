@@ -1,12 +1,16 @@
 import express, { Express, Request, Response } from "express";
+import cors from "cors";
 import dotenv from "dotenv";
+import { testAPIRoute } from "./routes/testAPI";
 
 dotenv.config();
 
 const app: Express = express();
-const port = process.env.PORT || 3000;
+const port: string = process.env.PORT || "9000";
 
-app.get("/", (req: Request, res: Response) => {
+app.use(cors());
+app.use("/testAPI", testAPIRoute);
+app.get("/", (_req: Request, res: Response) => {
   res.send("OK that is cool Server");
 });
 
