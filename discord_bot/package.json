@@ -1,7 +1,7 @@
 {
-  "name": "guildbuild_api",
+  "name": "guildbuild_discord_bot",
   "version": "0.1.0",
-  "description": "The server that handles storing/fetching all information about your guild structure within your community",
+  "description": "A bot to create their community structure straight within Discord",
   "private": true,
   "main": "dist/app.js",
   "scripts": {
@@ -28,13 +28,10 @@
   },
   "homepage": "https://github.com/ksun4176/GuildBuild_Discord#readme",
   "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "discord.js": "^14.15.2",
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
     "@types/node": "^20.12.13",
     "nodemon": "^3.1.2",
     "ts-node": "^10.9.2",

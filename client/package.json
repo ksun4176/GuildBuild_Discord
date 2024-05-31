@@ -1,6 +1,7 @@
 {
-  "name": "client",
+  "name": "guildbuild_client",
   "version": "0.1.0",
+  "description": "Handle a client view of the guild structure of your community",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
@@ -38,6 +39,16 @@
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version"
-    ]
+    ],
+    "repository": {
+      "type": "git",
+      "url": "git+ssh://git@github.com/ksun4176/GuildBuild_Discord.git"
+    },
+    "author": "Kai",
+    "license": "ISC",
+    "bugs": {
+      "url": "https://github.com/ksun4176/GuildBuild_Discord/issues"
+    },
+    "homepage": "https://github.com/ksun4176/GuildBuild_Discord#readme"
   }
 }

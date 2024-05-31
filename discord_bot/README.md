@@ -1,8 +1,8 @@
-# GuildBuild_API
-The server that handles storing/fetching all information about your guild structure within your community.
+# GuildBuild_Discord
+A bot to create their community structure straight within Discord.
 
 ## Contributing
-The server is created using Node.js and Express.
+The server is created using Node.js.
 The languages we are using are TypeScript, ...
 
 Once you've cloned the repository, install dependencies with `npm install`.
