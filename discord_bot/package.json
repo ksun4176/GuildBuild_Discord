@@ -8,7 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx tsc",
     "start": "node .",
-    "dev": "nodemon src/app.ts"
+    "dev": "nodemon src/app.ts",
+    "register": "node dist/deployCommands.js"
   },
   "repository": {
     "type": "git",

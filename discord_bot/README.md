@@ -12,6 +12,12 @@ To start a development bot, run these commands in terminal:
 2. Initiate a development server using `npm run dev`
    - This uses nodemon which will track real time updates to your TypeScript + JSON and restart the server accordingly. 
 
+If you change the command definition (description, options, etc.), you will need to redeploy:
+(NOTE: You do not need to redeploy if you make updates to the execute function)
+1. Generate corresponding JavaScript files using `npm run build`
+   - Node does not run on TypeScript so we need to create them so it runs
+2. Deply commands using `npm run register`
+
 Once you are done with your changes, run these commands in terminal:
 1. Generate corresponding JavaScript files using `npm run build`
    - Node does not run on TypeScript so we need to create them so it runs
