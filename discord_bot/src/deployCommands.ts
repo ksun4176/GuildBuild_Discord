@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import { REST, RESTPostAPIChatInputApplicationCommandsJSONBody, Routes } from 'discord.js';
-import { CommandInterface } from "./commands/CommandInterface";
-import { executeOnAllCommands } from "./commands/CommandHelper";
+import { CommandInterface } from "./CommandInterface";
+import { executeOnAllCommands } from "./DiscordHelper";
 
 dotenv.config();
 
@@ -22,6 +22,7 @@ const DeployCommands = async () => {
 
 		const data = await rest.put(
 			Routes.applicationGuildCommands(process.env.CLIENT_ID!, process.env.SERVER_ID!),
+			// Routes.applicationCommands(process.env.CLIENT_ID!),
 			{ body: commands },
 		);
 
