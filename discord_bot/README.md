@@ -1,6 +1,14 @@
 # GuildBuild_Discord
 A bot to create their community structure straight within Discord.
 
+## File Structure
+All development files can be found in `src/`. All other folders are auto generated so they do not need to be touched.
+
+- ./app.ts: Entrypoint of our bot
+- ./*[Interface/Helper].ts: General set up functions and typings
+- ./commands/*: All of our commands (NOTE: our code look at all commands in this directory and subdirectory level deeper)
+- ./events/*: All of our events (NOTE: our code looks at all events at this level only)
+
 ## Contributing
 The server is created using Node.js.
 The languages we are using are TypeScript, ...
