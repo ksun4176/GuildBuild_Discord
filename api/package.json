@@ -4,11 +4,19 @@
   "description": "The server that handles storing/fetching all information about your guild structure within your community",
   "private": true,
   "main": "dist/app.js",
+  "prisma": {
+    "seed": "tsx prisma/seed/seed.ts"
+  },
+  "@snaplet/seed": {
+    "config": "prisma/seed/seed.config.ts"
+  },
   "scripts": {
     "test": "jest",
     "build": "npx tsc",
     "start": "node .",
-    "dev": "nodemon src/app.ts"
+    "dev": "nodemon src/app.ts",
+    "migrate": "prisma migrate dev",
+    "postmigrate": "npx @snaplet/seed sync"
   },
   "repository": {
     "type": "git",
@@ -28,20 +36,24 @@
   },
   "homepage": "https://github.com/ksun4176/GuildBuild_Discord#readme",
   "dependencies": {
+    "@prisma/client": "^5.15.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "mysql2": "^3.10.0"
   },
   "devDependencies": {
+    "@snaplet/seed": "^0.97.20",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.12.13",
     "jest": "^29.7.0",
     "nodemon": "^3.1.2",
+    "prisma": "^5.15.0",
     "ts-jest": "^29.1.4",
     "ts-node": "^10.9.2",
+    "tsx": "^4.15.2",
     "typescript": "^5.4.5"
   }
 }

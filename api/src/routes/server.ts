@@ -1,20 +1,27 @@
 import { Router } from "express";
-import { Database } from "../Database";
-import { Server } from "../classes/Server";
+import { PrismaClient, Prisma } from '@prisma/client'
+
+const ServerInclude = Prisma.validator<Prisma.ServerInclude>()({
+    // add other relations to include
+});
+  
+export type Server = Prisma.ServerGetPayload<{
+    include: typeof ServerInclude;
+}>;
 
 export class ServerRoute {
     /**
-     * The database connection
-     */
-    private __database: Database<any>;
+     * The prisma client that connects to the database
+     */ 
+    private __prisma: PrismaClient;
     /** The router */
     private __route: Router;
     public get route(): Router {
         return this.__route;
     }
 
-    constructor(database: Database<any>) {
-        this.__database = database;
+    constructor(prisma: PrismaClient) {
+        this.__prisma = prisma;
         this.__route = Router();
         this.__setUpRoute();
     }
@@ -23,7 +30,9 @@ export class ServerRoute {
         // Get all servers
         this.__route.get('/', async (_req, res, _next) => {
             try {
-                const servers = await this.__database.getServers();
+                const servers = await this.__prisma.server.findMany({
+                    where: { active: true }
+                });
                 res.status(200).json({servers: servers});
             }
             catch (err) {
@@ -37,10 +46,14 @@ export class ServerRoute {
             try {
                 const server: Server = req.body.server;
                 if (!server) {
-                    throw new Error("Missing server object");
+                    throw new Error('Missing server object');
                 }
-                const insertId = await this.__database.insertServer(server);
-                const serverResult = await this.__database.getServers(insertId);
+                if (!server.name) {
+                    throw new Error('No name provided');
+                }
+                const serverResult = await this.__prisma.server.create({
+                    data: { name: server.name }
+                });
                 res.json({server: serverResult});
             }
             catch (err) {
@@ -52,7 +65,13 @@ export class ServerRoute {
         // Grab info on the current state of server information
         this.__route.param('serverId', async (req, res, next, serverId)=> {
             try {
-                const server = await this.__database.getServers(serverId);
+                const serverIdParsed = parseInt(serverId);
+                if (!serverIdParsed) {
+                    throw new Error('Malformed ID');
+                }
+                const server = await this.__prisma.server.findFirstOrThrow({
+                    where: {id: serverIdParsed}
+                });
                 req.body.serverOriginal = server;
                 next();
             }
@@ -64,26 +83,44 @@ export class ServerRoute {
 
         // Grab a server
         this.__route.get('/:serverId',  (req, res, _next) => {
+            const serverOriginal = req.body.serverOriginal;
+            if (!serverOriginal.active) {
+                res.json({server: {
+                    id: serverOriginal.id,
+                    name: serverOriginal.name,
+                    active: serverOriginal.active
+                }})
+            }
+            else {
+                res.json({server: serverOriginal});
+            }
             res.status(200).json({server: req.body.serverOriginal});
         });
 
         // Update a server
         this.__route.put('/:serverId',  async (req, res, _next)=>{
             try {
-                const serverId = parseInt(req.params.serverId);
-                if (!serverId) {
-                    throw new Error("Malformed ID");
-                }
                 const server: Server = req.body.server;
                 if (!server) {
-                    throw new Error("Missing server object");
+                    throw new Error('Missing server object');
                 }
                 const serverOriginal: Server = req.body.serverOriginal;
-                if (serverOriginal.discord_id && serverOriginal.discord_id !== server.discord_id) {
-                    throw new Error("Trying to overwrite discord ID? Suspicious...")
+                if (!serverOriginal.active) {
+                    throw new Error('This server has been deleted');
                 }
-                await this.__database.updateServer(serverId, server);
-                const serverResult = await this.__database.getServers(serverId);
+                if (serverOriginal.id !== server.id) {
+                    throw new Error('ID mismatch found');
+                }
+                if (serverOriginal.discordId && serverOriginal.discordId !== server.discordId) {
+                    throw new Error('Trying to overwrite discord ID? Suspicious...');
+                }
+                const serverResult = await this.__prisma.server.update({
+                    where: { id: serverOriginal.id },
+                    data: {
+                        name: server.name,
+                        discordId: server.discordId
+                    }
+                });
                 res.json({server: serverResult});
             }
             catch (err) {
@@ -95,11 +132,11 @@ export class ServerRoute {
         /** Delete one server */
         this.__route.delete('/:serverId', async (req, res, _next)=>{
             try {
-                const serverId = parseInt(req.params.serverId);
-                if (!serverId) {
-                    throw new Error("Malformed ID");
-                }
-                await this.__database.setServerActive(serverId, false);
+                const serverOriginal: Server = req.body.serverOriginal;
+                await this.__prisma.server.update({
+                    where: { id: serverOriginal.id },
+                    data: { active: false }
+                });
                 res.sendStatus(204);
             }
             catch (err) {
