@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(cors());
 
 const serverRoute = new ServerRoute(prisma).route;
-app.use('/server', serverRoute);
+app.use('/servers', serverRoute);
 
 app.get("/", (_req: Request, res: Response) => {
     res.send("Nothing to see here");
