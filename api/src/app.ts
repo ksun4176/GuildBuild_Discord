@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import { ServerRoute } from "./routes/server";
+import { GameRoute } from "./routes/game";
 import { PrismaClient } from "@prisma/client";
 
 dotenv.config();
@@ -15,6 +16,8 @@ app.use(cors());
 
 const serverRoute = new ServerRoute(prisma).route;
 app.use('/servers', serverRoute);
+const gameRoute = new GameRoute(prisma).route;
+app.use('/games', gameRoute);
 
 app.get("/", (_req: Request, res: Response) => {
     res.send("Nothing to see here");

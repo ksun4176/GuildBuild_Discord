@@ -35,11 +35,15 @@ The server is created using Node.js, Express, and MySQL.
 The languages we are using are TypeScript, ...
 
 ### APIs:
+/games
+- /games
+  - GET: Retrieve all games
+- /games/{gameId}
+  - GET: Retrieve one game
 /servers
 - /servers
-  - GET: Retrieve all servers
+  - GET: Retrieve all active servers
   - POST: Add a new server
-    - E.g., `curl -v -H "Content-Type: application/json" -X POST -d '{ "server": { "name":"kaitest" } }' http://localhost:9000/server`
 - /servers/{serverId}
   - GET: Retrieve one server
   - PUT: Update the server

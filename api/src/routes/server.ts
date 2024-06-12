@@ -25,13 +25,13 @@ export class ServerRoute {
      * Set up all routes
      */
     private __setUpRoute() {
-        this.__route.get('/', async (req, res, _next) => {
+        this.__route.get('/', async (_req, res, _next) => {
             try {
                 const servers = await this.__server.getServers({ active: true });
                 res.status(200).json({servers: servers});
             }
             catch (err) {
-                console.error(err, req);
+                console.error(err);
                 res.sendStatus(500);
             }
         });
@@ -43,19 +43,22 @@ export class ServerRoute {
                 res.status(201).json({server: serverResult});
             }
             catch (err) {
-                console.error(err, req);
+                console.error(err);
                 res.sendStatus(400);
             }
         });
 
         this.__route.param('serverId', async (req, res, next, serverId)=> {
             try {
-                const server = await this.__server.getServers({ id: serverId });
-                req.body.serverOriginal = server;
+                const servers = await this.__server.getServers({ id: +serverId });
+                if (servers.length !== 1) {
+                    throw new Error('Server not found');
+                }
+                req.body.serverOriginal = servers[0];
                 next();
             }
             catch (err) {
-                console.log(err, req);
+                console.log(err);
                 res.sendStatus(404);
             }
         });
@@ -81,7 +84,7 @@ export class ServerRoute {
                 res.status(202).json({server: serverResult});
             }
             catch (err) {
-                console.log(err, req);
+                console.log(err);
                 res.sendStatus(400);
             }
         });
@@ -93,7 +96,7 @@ export class ServerRoute {
                 res.sendStatus(204);
             }
             catch (err) {
-                console.log(err, req);
+                console.log(err);
                 res.sendStatus(500);
             }
         });
