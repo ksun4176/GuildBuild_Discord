@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { PrismaClient, Game } from '@prisma/client'
 import { GameFunctions } from "../classes/game";
+import { GuildRoute } from "./guild";
 
 export class GameRoute {
     /**
@@ -25,6 +26,7 @@ export class GameRoute {
      * Set up all routes
      */
     private __setUpRoute() {
+        
         this.__route.get('/', async (_req, res, _next) => {
             try {
                 const games = await this.__game.getGames();
@@ -36,10 +38,9 @@ export class GameRoute {
             }
         });
 
-        this.__route.param('gameId', async (req, res, next, gameId)=> {
+        this.__route.param('gameId', async (req, res, next, gameId) => {
             try {
                 const games = await this.__game.getGames({ id: +gameId });
-                console.log(games)
                 if (games.length !== 1) {
                     throw new Error('Game not found');
                 }
@@ -47,10 +48,13 @@ export class GameRoute {
                 next();
             }
             catch (err) {
-                console.log(err);
+                console.error(err);
                 res.sendStatus(404);
             }
         });
+
+        const guildRoute = new GuildRoute(this.__prisma).route;
+        this.__route.use('/:gameId/guilds', guildRoute);
 
         this.__route.get('/:gameId',  (req, res, _next) => {
             let gameOriginal: Game = req.body.gameOriginal;

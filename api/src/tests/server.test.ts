@@ -37,15 +37,15 @@ describe('ServerFunction', () => {
                 name: "test",
                 discordId: "discordId"
             };
-            const originalServer: Server = {
+            const original: Server = {
                 id: 1,
                 name: "original",
                 discordId: "discordId",
                 active: true
             }
-            await serverFunction.updateServer(data, originalServer);
+            await serverFunction.updateServer(data, original);
             expect(prismaMock.server.update).toHaveBeenLastCalledWith({ 
-                where: { id: originalServer.id },
+                where: { id: original.id },
                 data: data 
             });
         });
@@ -55,14 +55,14 @@ describe('ServerFunction', () => {
                 name: "test",
                 discordId: "discordId"
             };
-            const originalServer: Server = {
+            const original: Server = {
                 id: 1,
                 name: "original",
                 discordId: "discordId",
                 active: false
             }
             try {
-                await serverFunction.updateServer(data, originalServer);
+                await serverFunction.updateServer(data, original);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.notActive));
@@ -74,14 +74,14 @@ describe('ServerFunction', () => {
                 name: "test",
                 discordId: "discordIdNew"
             };
-            const originalServer: Server = {
+            const original: Server = {
                 id: 1,
                 name: "original",
                 discordId: "discordId",
                 active: true
             }
             try {
-                await serverFunction.updateServer(data, originalServer);
+                await serverFunction.updateServer(data, original);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.mismatchDiscordId));

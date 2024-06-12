@@ -1,7 +1,7 @@
 import { PrismaClient, Prisma, Game } from '@prisma/client'
 
 export const messages = {
-    missingObject: 'Missing server object',
+    missingObject: 'Missing game object',
     missingName: 'Missing name property',
 }
 

@@ -22,7 +22,7 @@ To start a development server, run these commands in terminal:
 1. Install dependencies using `npm install`.
 2. If you do not want to use port 9000, in your `.env` file, add `API_PORT=<Custom Port #>`
 3. Initiate a development server using `npm run dev`
-   - This uses nodemon which will track real time updates to your files and restart the server accordingly. 
+   - This uses nodemon which will track real time updates to your files and restart the server accordingly.
 
 Once you are done with your changes, run these commands in terminal:
 1. Install dependencies using `npm install --omit=dev`
@@ -40,6 +40,8 @@ The languages we are using are TypeScript, ...
   - GET: Retrieve all games
 - /games/{gameId}
   - GET: Retrieve one game
+- /games/{gameId}/guilds
+  - Links up to the /guilds route with some gameId checking
 /servers
 - /servers
   - GET: Retrieve all active servers
@@ -48,3 +50,13 @@ The languages we are using are TypeScript, ...
   - GET: Retrieve one server
   - PUT: Update the server
   - DELETE: Deactivate the server
+- /servers/{serverId}/guilds
+  - Links up to the /guilds route with some serverId checking
+/guilds
+- /guilds
+  - GET: Retrieve all active guilds (must be given context from a parent route)
+  - POST: Add a new guild
+- /guilds/{guildId}
+  - GET: Retrieve one guild
+  - PUT: Update the guild
+  - DELETE: Deactivate the guild

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { PrismaClient, Server } from '@prisma/client'
 import { ServerFunctions } from "../classes/server";
+import { GuildRoute } from "./guild";
 
 export class ServerRoute {
     /**
@@ -48,7 +49,7 @@ export class ServerRoute {
             }
         });
 
-        this.__route.param('serverId', async (req, res, next, serverId)=> {
+        this.__route.param('serverId', async (req, res, next, serverId) => {
             try {
                 const servers = await this.__server.getServers({ id: +serverId });
                 if (servers.length !== 1) {
@@ -58,12 +59,15 @@ export class ServerRoute {
                 next();
             }
             catch (err) {
-                console.log(err);
+                console.error(err);
                 res.sendStatus(404);
             }
         });
 
-        this.__route.get('/:serverId',  (req, res, _next) => {
+        const guildRoute = new GuildRoute(this.__prisma).route;
+        this.__route.use('/:serverId/guilds', guildRoute);
+
+        this.__route.get('/:serverId', (req, res, _next) => {
             let serverOriginal: Partial<Server> = req.body.serverOriginal;
             if (!serverOriginal.active) {
                 // do not give past basic information if inactive
@@ -76,7 +80,7 @@ export class ServerRoute {
             res.status(200).json({server: serverOriginal});
         });
 
-        this.__route.put('/:serverId',  async (req, res, _next)=>{
+        this.__route.put('/:serverId', async (req, res, _next) => {
             try {
                 const server = req.body.server;
                 const serverOriginal: Server = req.body.serverOriginal;
@@ -84,19 +88,19 @@ export class ServerRoute {
                 res.status(202).json({server: serverResult});
             }
             catch (err) {
-                console.log(err);
+                console.error(err);
                 res.sendStatus(400);
             }
         });
 
-        this.__route.delete('/:serverId', async (req, res, _next)=>{
+        this.__route.delete('/:serverId', async (req, res, _next) => {
             try {
                 const serverOriginal: Server = req.body.serverOriginal;
                 await this.__server.deactivateServer(serverOriginal);
                 res.sendStatus(204);
             }
             catch (err) {
-                console.log(err);
+                console.error(err);
                 res.sendStatus(500);
             }
         });
