@@ -9,10 +9,6 @@ const main = async () => {
     // Truncate all tables in the database
     await seed.$resetDatabase();
 
-    // Seed the database with the expected games
-    await seed.game([
-        {id: 1, name: 'AFK Arena'}
-    ]);
     // Seed the database with the expected user_role_types
     await seed.user_role_type([
         {id: 1, name: 'Server Owner'},
@@ -21,6 +17,18 @@ const main = async () => {
         {id: 4, name: 'Guild Management'},
         {id: 5, name: 'Recruiter'},
         {id: 6, name: 'Guild Member'},
+    ]);
+    // Seed the database with the expected games
+    await seed.game([
+        {id: 1, name: 'AFK Arena'}
+    ]);
+    // Seed the database with a test server
+    await seed.server([
+        {id: 1, name: 'Gubii Test Server'}
+    ]);
+    // Seed the database with a test guild
+    await seed.guild([
+        {game_id: 1, guild_id: "69", name: "Gubii Test Guild", server_id: 1}
     ]);
     
     console.log("Database seeded successfully!");

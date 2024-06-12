@@ -16,7 +16,8 @@
     "start": "node .",
     "dev": "nodemon --delay 2500ms src/app.ts",
     "migrate": "prisma migrate dev",
-    "postmigrate": "npx @snaplet/seed sync"
+    "postmigrate": "npx @snaplet/seed sync",
+    "seed": "prisma db seed"
   },
   "repository": {
     "type": "git",

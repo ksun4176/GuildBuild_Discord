@@ -31,8 +31,8 @@ export class GuildRoute {
         const rootRoute = '/';
         this.__route.get<typeof rootRoute,Params<typeof rootRoute>>(rootRoute, async (req, res, _next) => {
             let { gameId, serverId } = req.params;
-            const parsedGameId = gameId ? parseInt(gameId) : undefined;
-            const parsedServerId = serverId ? parseInt(serverId) : undefined;
+            let parsedGameId = gameId ? parseInt(gameId) : undefined;
+            let parsedServerId = serverId ? parseInt(serverId) : undefined;
             try {
                 const whereArgs: Partial<Prisma.GuildWhereInput> = {
                     active: true
@@ -42,6 +42,11 @@ export class GuildRoute {
                 }
                 else if (parsedServerId) {
                     whereArgs.serverId = parsedServerId;
+                    // look for gameId query
+                    const queryGameId = req.query.gameId;
+                    if (typeof queryGameId === "string") {
+                        whereArgs.gameId = parseInt(queryGameId);
+                    }
                 }
                 else {
                     throw new Error('No game or server provided');
