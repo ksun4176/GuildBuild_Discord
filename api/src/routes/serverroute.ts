@@ -1,7 +1,7 @@
 import { RouterOptions } from "express";
 import { PrismaClient, Server } from '@prisma/client'
-import { ServerModel } from "../classes/server";
-import { GuildRoute } from "./guild";
+import { ServerModel } from "../classes/servermodel";
+import { GuildRoute } from "./guildroute";
 import { Route } from "./route";
 
 export class ServerRoute extends Route<ServerModel> {

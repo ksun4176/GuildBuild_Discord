@@ -1,6 +1,6 @@
 import { RouterOptions } from "express";
-import { PrismaClient, Guild, Prisma } from '@prisma/client'
-import { GuildModel } from "../classes/guild";
+import { Guild, Prisma, PrismaClient } from '@prisma/client'
+import { GuildModel } from "../classes/guildmodel";
 import { RouteParameters } from 'express-serve-static-core';
 import { Route } from "./route";
 

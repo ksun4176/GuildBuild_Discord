@@ -1,11 +1,12 @@
 import dotenv from "dotenv";
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
-import { ServerRoute } from "./routes/server";
-import { GameRoute } from "./routes/game";
+import { ServerRoute } from "./routes/serverroute";
+import { GameRoute } from "./routes/gameroute";
 import { PrismaClient } from "@prisma/client";
-import { GuildRoute } from "./routes/guild";
+import { GuildRoute } from "./routes/guildroute";
 import gracefulShutdown from "http-graceful-shutdown";
+import { UserRoute } from "./routes/userroute";
 
 dotenv.config();
 const prisma = new PrismaClient();
@@ -22,6 +23,8 @@ const gameRoute = new GameRoute(prisma).route;
 app.use('/games', gameRoute);
 const guildRoute = new GuildRoute(prisma).route;
 app.use('/guilds', guildRoute);
+const userRoute = new UserRoute(prisma).route;
+app.use('/users', userRoute);
 
 app.get("/", (_req: Request, res: Response) => {
     res.send("Nothing to see here");

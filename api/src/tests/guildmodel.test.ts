@@ -1,16 +1,16 @@
 import { Guild } from "@prisma/client";
-import { messages, GuildModel } from "../classes/guild";
+import { GuildModel, messages } from "../classes/guildmodel";
 import { prismaMock } from './singleton'
 
-describe('GuildFunction', () => {
-    let guildFunction: GuildModel;
+describe('GuildModel', () => {
+    let guildModel: GuildModel;
     beforeEach(() => {
-        guildFunction = new GuildModel(prismaMock);
+        guildModel = new GuildModel(prismaMock);
     });
     describe('gets guilds', () => {
         test('with filters provided will pass the filters as a condition', async () => {
             const filters = { active: true };
-            await guildFunction.get(filters);
+            await guildModel.get(filters);
             expect(prismaMock.guild.findMany).toHaveBeenLastCalledWith({ where: filters });
         });
     });
@@ -23,7 +23,7 @@ describe('GuildFunction', () => {
                 gameId: 2
             };
 
-            await guildFunction.create(data);
+            await guildModel.create(data);
             expect(prismaMock.guild.create).toHaveBeenLastCalledWith({ data: data });
         });
         test('with no gameId will error out', async () => {
@@ -34,7 +34,7 @@ describe('GuildFunction', () => {
                 name: "test" 
             };
             try {
-                await guildFunction.create(data);
+                await guildModel.create(data);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.missingGame));
@@ -48,7 +48,7 @@ describe('GuildFunction', () => {
                 name: "test" 
             };
             try {
-                await guildFunction.create(data);
+                await guildModel.create(data);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.missingServer));
@@ -62,7 +62,7 @@ describe('GuildFunction', () => {
                 guildId: "guildId",
             };
             try {
-                await guildFunction.create(data);
+                await guildModel.create(data);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.missingName));
@@ -76,7 +76,7 @@ describe('GuildFunction', () => {
                 name: "test" 
             };
             try {
-                await guildFunction.create(data);
+                await guildModel.create(data);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.missingGuildId));
@@ -99,7 +99,7 @@ describe('GuildFunction', () => {
                 serverId: 3,
                 active: true
             }
-            await guildFunction.update(data, original);
+            await guildModel.update(data, original);
             expect(prismaMock.guild.update).toHaveBeenLastCalledWith({ 
                 where: { id: original.id },
                 data: data 
@@ -122,7 +122,7 @@ describe('GuildFunction', () => {
                 active: false
             }
             try {
-                await guildFunction.update(data, original);
+                await guildModel.update(data, original);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.notActive));
@@ -145,7 +145,7 @@ describe('GuildFunction', () => {
                 active: true
             }
             try {
-                await guildFunction.update(data, original);
+                await guildModel.update(data, original);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.mismatchGame));
@@ -168,7 +168,7 @@ describe('GuildFunction', () => {
                 active: true
             }
             try {
-                await guildFunction.update(data, original);
+                await guildModel.update(data, original);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.mismatchGuild));

@@ -1,7 +1,7 @@
 import { RouterOptions } from "express";
-import { PrismaClient, Game } from '@prisma/client'
-import { GameModel } from "../classes/game";
-import { GuildRoute } from "./guild";
+import { Game, PrismaClient } from '@prisma/client'
+import { GameModel } from "../classes/gamemodel";
+import { GuildRoute } from "./guildroute";
 import { Route } from "./route";
 
 export class GameRoute extends Route<GameModel> {

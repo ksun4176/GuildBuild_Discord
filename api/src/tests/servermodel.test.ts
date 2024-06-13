@@ -1,30 +1,30 @@
 import { Server } from "@prisma/client";
-import { messages, ServerModel } from "../classes/server";
+import { messages, ServerModel } from "../classes/servermodel";
 import { prismaMock } from './singleton'
 
-describe('ServerFunction', () => {
-    let serverFunction: ServerModel;
+describe('ServerModel', () => {
+    let serverModel: ServerModel;
     beforeEach(() => {
-        serverFunction = new ServerModel(prismaMock);
+        serverModel = new ServerModel(prismaMock);
     });
     describe('gets servers', () => {
         test('with filters provided will pass the filters as a condition', async () => {
             const filters = { active: true };
-            await serverFunction.get(filters);
+            await serverModel.get(filters);
             expect(prismaMock.server.findMany).toHaveBeenLastCalledWith({ where: filters });
         });
     });
     describe('create server', () => {
-        test('with provided name will create the server', async () => {
+        test('with required data will create the server', async () => {
             const data = { name: "test" };
-            await serverFunction.create(data);
+            await serverModel.create(data);
             expect(prismaMock.server.create).toHaveBeenLastCalledWith({ data: data });
         });
         test('with no name will error out', async () => {
             expect.assertions(1);
             const data = {};
             try {
-                await serverFunction.create(data);
+                await serverModel.create(data);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.missingName));
@@ -43,7 +43,7 @@ describe('ServerFunction', () => {
                 discordId: "discordId",
                 active: true
             }
-            await serverFunction.update(data, original);
+            await serverModel.update(data, original);
             expect(prismaMock.server.update).toHaveBeenLastCalledWith({ 
                 where: { id: original.id },
                 data: data 
@@ -62,7 +62,7 @@ describe('ServerFunction', () => {
                 active: false
             }
             try {
-                await serverFunction.update(data, original);
+                await serverModel.update(data, original);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.notActive));
@@ -81,7 +81,7 @@ describe('ServerFunction', () => {
                 active: true
             }
             try {
-                await serverFunction.update(data, original);
+                await serverModel.update(data, original);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.mismatchDiscordId));
