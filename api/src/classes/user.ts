@@ -1,40 +1,40 @@
-import { PrismaClient, Prisma, Server } from '@prisma/client'
+import { PrismaClient, Prisma, User } from '@prisma/client'
 import { Model } from './model';
 import { DefaultArgs } from '@prisma/client/runtime/library';
 
 export const messages = {
-    missingObject: 'Missing server object',
+    missingObject: 'Missing user object',
     missingName: 'Missing name property',
-    notActive: 'Server has been deleted',
+    notActive: 'User has been deleted',
     mismatchDiscordId: 'Trying to overwrite discord ID? Suspicious...'
 }
 
-export class ServerModel extends Model<Prisma.ServerDelegate, Server, Prisma.ServerWhereInput> {
+export class UserModel extends Model<Prisma.UserDelegate, User, Prisma.UserWhereInput> {
 
-    protected override __delegate: Prisma.ServerDelegate<DefaultArgs>;
+    protected override __delegate: Prisma.UserDelegate<DefaultArgs>;
 
     constructor(prisma: PrismaClient) {
         super(prisma);
-        this.__delegate = this.__prisma.server;
+        this.__delegate = this.__prisma.user;
     }
 
     /**
-     * Get servers that match the filters
+     * Get users that match the filters
      * @param whereArgs the filters
-     * @returns array of servers
+     * @returns array of users
      */
-    public async get(whereArgs?: Partial<Prisma.ServerWhereInput>): Promise<Server[]> {
+    public async get(whereArgs?: Partial<Prisma.UserWhereInput>): Promise<User[]> {
         return await this.__delegate.findMany({
             where: whereArgs
         });
     }
 
     /**
-     * Create a server
-     * @param data server info
-     * @returns created server
+     * Create a user
+     * @param data user info
+     * @returns created user
      */
-    public async create(data: any): Promise<Server> {
+    public async create(data: any): Promise<User> {
         if (!data) {
             throw new Error(messages.missingObject);
         }
@@ -42,17 +42,17 @@ export class ServerModel extends Model<Prisma.ServerDelegate, Server, Prisma.Ser
             throw new Error(messages.missingName);
         }
         return await this.__delegate.create({
-            data: this.__getServerData(data)
+            data: this.__getUserData(data)
         });
     }
 
     /**
-     * Update a server
-     * @param data server info to update to
+     * Update a user
+     * @param data user info to update to
      * @param original original info
-     * @returns updated server
+     * @returns updated user
      */
-    public async update(data: any, original: Server): Promise<Server> {
+    public async update(data: any, original: User): Promise<User> {
         if (!data) {
             throw new Error(messages.missingObject);
         }
@@ -64,15 +64,15 @@ export class ServerModel extends Model<Prisma.ServerDelegate, Server, Prisma.Ser
         }
         return await this.__delegate.update({
             where: { id: original.id },
-            data: this.__getServerData(data)
+            data: this.__getUserData(data)
         });
     }
 
     /**
-     * Delete a server
+     * Delete a user
      * @param original original info
      */
-    public async delete(original: Server): Promise<void> {
+    public async delete(original: User): Promise<void> {
         await this.__delegate.update({
             where: { id: original.id },
             data: { active: false }
@@ -80,12 +80,12 @@ export class ServerModel extends Model<Prisma.ServerDelegate, Server, Prisma.Ser
     }
     
     /**
-     * Get all valid server properties that we can set when updating/creating
-     * @param data new server info
-     * @returns valid server properties
+     * Get all valid user properties that we can set when updating/creating
+     * @param data new user info
+     * @returns valid user properties
      */
-    private __getServerData(data: any) {
-        return { 
+    private __getUserData(data: any) {
+        return {
             name: data.name, 
             discordId: data.discordId 
         };

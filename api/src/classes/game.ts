@@ -1,18 +1,19 @@
 import { PrismaClient, Prisma, Game } from '@prisma/client'
+import { Model } from './model';
+import { DefaultArgs } from '@prisma/client/runtime/library';
 
 export const messages = {
     missingObject: 'Missing game object',
     missingName: 'Missing name property',
 }
 
-export class GameFunctions {
-    /**
-     * The prisma client that connects to the database
-     */ 
-    private __prisma: PrismaClient;
+export class GameModel extends Model<Prisma.GameDelegate, Game, Prisma.GameWhereInput> {
+    
+    protected override __delegate: Prisma.GameDelegate<DefaultArgs>;
 
     constructor(prisma: PrismaClient) {
-        this.__prisma = prisma;
+        super(prisma);
+        this.__delegate = this.__prisma.game;
     }
 
     /**
@@ -20,8 +21,8 @@ export class GameFunctions {
      * @param whereArgs the filters
      * @returns array of games
      */
-    public async getGames(whereArgs?: Partial<Prisma.GameWhereInput>): Promise<Game[]> {
-        return await this.__prisma.game.findMany({
+    public async get(whereArgs?: Partial<Prisma.GameWhereInput>): Promise<Game[]> {
+        return await this.__delegate.findMany({
             where: whereArgs
         });
     }
@@ -31,16 +32,23 @@ export class GameFunctions {
      * @param data game info
      * @returns created game
      */
-    public async createGame(data: any): Promise<Game> {
+    public async create(data: any): Promise<Game> {
         if (!data) {
             throw new Error(messages.missingObject);
         }
         if (!data.name) {
             throw new Error(messages.missingName);
         }
-        return await this.__prisma.game.create({
+        return await this.__delegate.create({
             data: this.__getGameData(data)
         });
+    }
+    
+    public override update(_data: any, _original: { id: number; name: string; }): Promise<{ id: number; name: string; }> {
+        throw new Error('Method not implemented.');
+    }
+    public override delete(_original: { id: number; name: string; }): Promise<void> {
+        throw new Error('Method not implemented.');
     }
 
     /**

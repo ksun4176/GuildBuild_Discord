@@ -1,34 +1,21 @@
-import { Router } from "express";
+import { RouterOptions } from "express";
 import { PrismaClient, Server } from '@prisma/client'
-import { ServerFunctions } from "../classes/server";
+import { ServerModel } from "../classes/server";
 import { GuildRoute } from "./guild";
+import { Route } from "./route";
 
-export class ServerRoute {
-    /**
-     * The prisma client that connects to the database
-     */ 
-    private __prisma: PrismaClient;
-    private __server: ServerFunctions;
-    /** The router */
-    private __route: Router;
-    public get route(): Router {
-        return this.__route;
+export class ServerRoute extends Route<ServerModel> {
+    protected __model: ServerModel;
+
+    constructor(prisma: PrismaClient, routerOptions?: RouterOptions) {
+        super(prisma, routerOptions);
+        this.__model = new ServerModel(prisma);
     }
 
-    constructor(prisma: PrismaClient) {
-        this.__prisma = prisma;
-        this.__server = new ServerFunctions(this.__prisma);
-        this.__route = Router();
-        this.__setUpRoute();
-    }
-
-    /**
-     * Set up all routes
-     */
-    private __setUpRoute() {
-        this.__route.get('/', async (_req, res, _next) => {
+    protected override __setUpRoute() {
+        this.route.get('/', async (_req, res, _next) => {
             try {
-                const servers = await this.__server.getServers({ active: true });
+                const servers = await this.__model.get({ active: true });
                 res.status(200).json({servers: servers});
             }
             catch (err) {
@@ -37,10 +24,10 @@ export class ServerRoute {
             }
         });
 
-        this.__route.post('/', async (req, res, _next) => {
+        this.route.post('/', async (req, res, _next) => {
             try {
                 const server = req.body.server;
-                const serverResult = await this.__server.createServer(server);
+                const serverResult = await this.__model.create(server);
                 res.status(201).json({server: serverResult});
             }
             catch (err) {
@@ -49,9 +36,9 @@ export class ServerRoute {
             }
         });
 
-        this.__route.param('serverId', async (req, res, next, serverId) => {
+        this.route.param('serverId', async (req, res, next, serverId) => {
             try {
-                const servers = await this.__server.getServers({ id: +serverId });
+                const servers = await this.__model.get({ id: +serverId });
                 if (servers.length !== 1) {
                     throw new Error('Server not found');
                 }
@@ -64,10 +51,10 @@ export class ServerRoute {
             }
         });
 
-        const guildRoute = new GuildRoute(this.__prisma).route;
-        this.__route.use('/:serverId/guilds', guildRoute);
+        const guildRoute = new GuildRoute(this.__prisma, { mergeParams: true }).route;
+        this.route.use('/:serverId/guilds', guildRoute);
 
-        this.__route.get('/:serverId', (req, res, _next) => {
+        this.route.get('/:serverId', (req, res, _next) => {
             let serverOriginal: Partial<Server> = req.body.serverOriginal;
             if (!serverOriginal.active) {
                 // do not give past basic information if inactive
@@ -80,11 +67,11 @@ export class ServerRoute {
             res.status(200).json({server: serverOriginal});
         });
 
-        this.__route.put('/:serverId', async (req, res, _next) => {
+        this.route.put('/:serverId', async (req, res, _next) => {
             try {
                 const server = req.body.server;
                 const serverOriginal: Server = req.body.serverOriginal;
-                const serverResult = await this.__server.updateServer(server, serverOriginal);
+                const serverResult = await this.__model.update(server, serverOriginal);
                 res.status(202).json({server: serverResult});
             }
             catch (err) {
@@ -93,10 +80,10 @@ export class ServerRoute {
             }
         });
 
-        this.__route.delete('/:serverId', async (req, res, _next) => {
+        this.route.delete('/:serverId', async (req, res, _next) => {
             try {
                 const serverOriginal: Server = req.body.serverOriginal;
-                await this.__server.deactivateServer(serverOriginal);
+                await this.__model.delete(serverOriginal);
                 res.sendStatus(204);
             }
             catch (err) {

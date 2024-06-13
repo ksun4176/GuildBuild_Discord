@@ -1,35 +1,21 @@
-import { Router } from "express";
+import { RouterOptions } from "express";
 import { PrismaClient, Game } from '@prisma/client'
-import { GameFunctions } from "../classes/game";
+import { GameModel } from "../classes/game";
 import { GuildRoute } from "./guild";
+import { Route } from "./route";
 
-export class GameRoute {
-    /**
-     * The prisma client that connects to the database
-     */ 
-    private __prisma: PrismaClient;
-    private __game: GameFunctions;
-    /** The router */
-    private __route: Router;
-    public get route(): Router {
-        return this.__route;
+export class GameRoute extends Route<GameModel> {
+    protected __model: GameModel;
+
+    constructor(prisma: PrismaClient, routerOptions?: RouterOptions) {
+        super(prisma, routerOptions);
+        this.__model = new GameModel(prisma);
     }
 
-    constructor(prisma: PrismaClient) {
-        this.__prisma = prisma;
-        this.__game = new GameFunctions(this.__prisma);
-        this.__route = Router();
-        this.__setUpRoute();
-    }
-
-    /**
-     * Set up all routes
-     */
-    private __setUpRoute() {
-        
-        this.__route.get('/', async (_req, res, _next) => {
+    protected override __setUpRoute() {
+        this.route.get('/', async (_req, res, _next) => {
             try {
-                const games = await this.__game.getGames();
+                const games = await this.__model.get();
                 res.status(200).json({games: games});
             }
             catch (err) {
@@ -38,9 +24,9 @@ export class GameRoute {
             }
         });
 
-        this.__route.param('gameId', async (req, res, next, gameId) => {
+        this.route.param('gameId', async (req, res, next, gameId) => {
             try {
-                const games = await this.__game.getGames({ id: +gameId });
+                const games = await this.__model.get({ id: +gameId });
                 if (games.length !== 1) {
                     throw new Error('Game not found');
                 }
@@ -53,10 +39,10 @@ export class GameRoute {
             }
         });
 
-        const guildRoute = new GuildRoute(this.__prisma).route;
-        this.__route.use('/:gameId/guilds', guildRoute);
+        const guildRoute = new GuildRoute(this.__prisma, { mergeParams: true }).route;
+        this.route.use('/:gameId/guilds', guildRoute);
 
-        this.__route.get('/:gameId',  (req, res, _next) => {
+        this.route.get('/:gameId',  (req, res, _next) => {
             let gameOriginal: Game = req.body.gameOriginal;
             res.status(200).json({game: gameOriginal});
         });

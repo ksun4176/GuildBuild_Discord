@@ -1,35 +1,22 @@
-import { Router } from "express";
+import { RouterOptions } from "express";
 import { PrismaClient, Guild, Prisma } from '@prisma/client'
-import { GuildFunctions } from "../classes/guild";
+import { GuildModel } from "../classes/guild";
 import { RouteParameters } from 'express-serve-static-core';
+import { Route } from "./route";
 
 type Params<T extends string> = Partial<RouteParameters<':gameId'>> & Partial<RouteParameters<':serverId'>> & RouteParameters<T>;
 
-export class GuildRoute {
-    /**
-     * The prisma client that connects to the database
-     */ 
-    private __prisma: PrismaClient;
-    private __guild: GuildFunctions;
-    /** The router */
-    private __route: Router;
-    public get route(): Router {
-        return this.__route;
+export class GuildRoute extends Route<GuildModel> {
+    protected __model: GuildModel;
+
+    constructor(prisma: PrismaClient, routerOptions?: RouterOptions) {
+        super(prisma, routerOptions);
+        this.__model = new GuildModel(prisma);
     }
 
-    constructor(prisma: PrismaClient) {
-        this.__prisma = prisma;
-        this.__guild = new GuildFunctions(this.__prisma);
-        this.__route = Router({ mergeParams: true });
-        this.__setUpRoute();
-    }
-
-    /**
-     * Set up all routes
-     */
-    private __setUpRoute() {
+    protected override __setUpRoute() {
         const rootRoute = '/';
-        this.__route.get<typeof rootRoute,Params<typeof rootRoute>>(rootRoute, async (req, res, _next) => {
+        this.route.get<typeof rootRoute,Params<typeof rootRoute>>(rootRoute, async (req, res, _next) => {
             let { gameId, serverId } = req.params;
             let parsedGameId = gameId ? parseInt(gameId) : undefined;
             let parsedServerId = serverId ? parseInt(serverId) : undefined;
@@ -52,7 +39,7 @@ export class GuildRoute {
                     throw new Error('No game or server provided');
                 }
 
-                const guilds = await this.__guild.getGuilds(whereArgs);
+                const guilds = await this.__model.get(whereArgs);
                 res.status(200).json({guilds: guilds});
             }
             catch (err) {
@@ -61,13 +48,19 @@ export class GuildRoute {
             }
         });
 
-        this.__route.post<typeof rootRoute,Params<typeof rootRoute>>(rootRoute, async (req, res, _next) => {
+        this.route.post<typeof rootRoute,Params<typeof rootRoute>>(rootRoute, async (req, res, _next) => {
             let { gameId, serverId } = req.params;
             const guild = req.body.guild;
             const parsedGameId = gameId ? parseInt(gameId) : guild.gameId;
             const parsedServerId = serverId ? parseInt(serverId) : guild.serverId;
+            if (parsedGameId) {
+                guild.gameId = parsedGameId;
+            }
+            if (parsedServerId) {
+                guild.serverId = parsedServerId;
+            }
             try {
-                const guildResult = await this.__guild.createGuild(parsedGameId, parsedServerId, guild);
+                const guildResult = await this.__model.create(guild);
                 res.status(201).json({guild: guildResult});
             }
             catch (err) {
@@ -76,9 +69,9 @@ export class GuildRoute {
             }
         });
 
-        this.__route.param('guildId', async (req, res, next, guildId)=> {
+        this.route.param('guildId', async (req, res, next, guildId)=> {
             try {
-                const guilds = await this.__guild.getGuilds({ id: +guildId });
+                const guilds = await this.__model.get({ id: +guildId });
                 if (guilds.length !== 1) {
                     throw new Error('Guild not found');
                 }
@@ -92,7 +85,7 @@ export class GuildRoute {
         });
 
         const paramRoute = '/:guildId';
-        this.__route.get<typeof paramRoute,Params<typeof paramRoute>>(paramRoute, (req, res, _next) => {
+        this.route.get<typeof paramRoute,Params<typeof paramRoute>>(paramRoute, (req, res, _next) => {
             let { gameId, serverId } = req.params;
             const parsedGameId = gameId ? parseInt(gameId) : undefined;
             const parsedServerId = serverId ? parseInt(serverId) : undefined;
@@ -119,7 +112,7 @@ export class GuildRoute {
             res.status(200).json({guild: guildOriginal});
         });
 
-        this.__route.put<typeof paramRoute,Params<typeof paramRoute>>(paramRoute, async (req, res, _next) => {
+        this.route.put<typeof paramRoute,Params<typeof paramRoute>>(paramRoute, async (req, res, _next) => {
             let { gameId, serverId } = req.params;
             const parsedGameId = gameId ? parseInt(gameId) : undefined;
             const parsedServerId = serverId ? parseInt(serverId) : undefined;
@@ -137,7 +130,7 @@ export class GuildRoute {
                 return;
             }
             try {
-                const guildResult = await this.__guild.updateGuild(guild, guildOriginal);
+                const guildResult = await this.__model.update(guild, guildOriginal);
                 res.status(202).json({guild: guildResult});
             }
             catch (err) {
@@ -146,7 +139,7 @@ export class GuildRoute {
             }
         });
 
-        this.__route.delete<typeof paramRoute,Params<typeof paramRoute>>(paramRoute, async (req, res, _next) => {
+        this.route.delete<typeof paramRoute,Params<typeof paramRoute>>(paramRoute, async (req, res, _next) => {
             let { gameId, serverId } = req.params;
             const parsedGameId = gameId ? parseInt(gameId) : undefined;
             const parsedServerId = serverId ? parseInt(serverId) : undefined;
@@ -163,7 +156,7 @@ export class GuildRoute {
                 return;
             }
             try {
-                await this.__guild.deactivateGuild(guildOriginal);
+                await this.__model.delete(guildOriginal);
                 res.sendStatus(204);
             }
             catch (err) {

@@ -37,7 +37,7 @@ Once you are done with your changes, run these commands in terminal:
 3. Test that it would work in production using `npm run start`
 
 ## Technical Details
-The server is created using Node.js, Express, and MySQL.
+The server is created using Node.js, Express, Prisma, and MySQL.
 The languages we are using are TypeScript, ...
 
 ### APIs:
@@ -53,7 +53,7 @@ The languages we are using are TypeScript, ...
 /servers
 - Data structure:
   - name: name of server
-  - discordId: ID of discord server
+  - discordId: ID of Discord server
 - /servers
   - GET: Retrieve all active servers
   - POST: Add a new server
@@ -61,8 +61,10 @@ The languages we are using are TypeScript, ...
   - GET: Retrieve one server
   - PUT: Update the server
   - DELETE: Deactivate the server
-- /servers/{serverId}/guilds
+- /servers/{serverId}/guilds?gameId={gameId}
   - Links up to the /guilds route with some serverId checking
+- /servers/{serverId}/users?gameId={gameId}
+  - Links up to the /users route with some serverId checking
 /guilds
 - Data structure:
   - gameId: ID of game this guild is for
@@ -76,3 +78,16 @@ The languages we are using are TypeScript, ...
   - GET: Retrieve one guild
   - PUT: Update the guild
   - DELETE: Deactivate the guild
+- /guilds/{guildId}/users
+  - Links up to the /users route with some guildId checking
+/users
+- Data structure:
+  - name: name of user
+  - discordId: Discord user ID
+- /users
+  - GET: Retrieve all users (must be given context from a parent route)
+  - POST: Add a new user
+- /users/{userId}
+  - GET: Retrieve one user
+  - PUT: Update the user
+  - DELETE: Deactivate the user

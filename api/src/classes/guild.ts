@@ -1,4 +1,6 @@
 import { PrismaClient, Prisma, Guild } from '@prisma/client'
+import { Model } from './model';
+import { DefaultArgs } from '@prisma/client/runtime/library';
 
 export const messages = {
     missingObject: 'Missing guild object',
@@ -11,14 +13,13 @@ export const messages = {
     mismatchGuild: 'Trying to overwrite guild ID? Suspicious...'
 }
 
-export class GuildFunctions {
-    /**
-     * The prisma client that connects to the database
-     */ 
-    private __prisma: PrismaClient;
+export class GuildModel extends Model<Prisma.GuildDelegate, Guild, Prisma.GuildWhereInput> {
+    
+    protected override __delegate: Prisma.GuildDelegate<DefaultArgs>;
 
     constructor(prisma: PrismaClient) {
-        this.__prisma = prisma;
+        super(prisma);
+        this.__delegate = this.__prisma.guild;
     }
 
     /**
@@ -26,8 +27,8 @@ export class GuildFunctions {
      * @param whereArgs the filters
      * @returns array of guilds
      */
-    public async getGuilds(whereArgs?: Partial<Prisma.GuildWhereInput>): Promise<Guild[]> {
-        return await this.__prisma.guild.findMany({
+    public async get(whereArgs?: Partial<Prisma.GuildWhereInput>): Promise<Guild[]> {
+        return await this.__delegate.findMany({
             where: whereArgs
         });
     }
@@ -39,14 +40,14 @@ export class GuildFunctions {
      * @param data guild info
      * @returns created guild
      */
-    public async createGuild(gameId: number, serverId: number, data: any): Promise<Guild> {
+    public async create(data: any): Promise<Guild> {
         if (!data) {
             throw new Error(messages.missingObject);
         }
-        if (!gameId) {
+        if (!data.gameId) {
             throw new Error(messages.missingGame);
         }
-        if (!serverId) {
+        if (!data.serverId) {
             throw new Error(messages.missingServer);
         }
         if (!data.guildId) {
@@ -56,9 +57,7 @@ export class GuildFunctions {
             throw new Error(messages.missingName);
         }
         let validData = this.__getGuildData(data);
-        validData.serverId = serverId;
-        validData.gameId = gameId;
-        return await this.__prisma.guild.create({
+        return await this.__delegate.create({
             data: validData
         });
     }
@@ -69,7 +68,7 @@ export class GuildFunctions {
      * @param original original info
      * @returns updated guild
      */
-    public async updateGuild(data: any, original: Guild): Promise<Guild> {
+    public async update(data: any, original: Guild): Promise<Guild> {
         if (!data) {
             throw new Error(messages.missingObject);
         }
@@ -82,18 +81,18 @@ export class GuildFunctions {
         if (original.guildId && data.guildId && original.guildId !== data.guildId) {
             throw new Error(messages.mismatchGuild);
         }
-        return await this.__prisma.guild.update({
+        return await this.__delegate.update({
             where: { id: original.id },
             data: this.__getGuildData(data)
         });
     }
 
     /**
-     * Deactivate a guild
+     * Delete a guild
      * @param original original info
      */
-    public async deactivateGuild(original: Guild): Promise<void> {
-        await this.__prisma.guild.update({
+    public async delete(original: Guild): Promise<void> {
+        await this.__delegate.update({
             where: { id: original.id },
             data: { active: false }
         });
