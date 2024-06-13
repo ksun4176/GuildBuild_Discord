@@ -11,18 +11,15 @@ Now as to how to contribute:
 4. Once you commit, creat a merge request (I like merge requests because you can create a checklist of things you want to tackle)
 
 To create/update a database:
-1. Install dependencies using `npm install`.
+1. Install dependencies using `npm install`
 2. In your `.env` file, add `SQL_URL="mysql://{user}:{password}@{host}:{port}/{dbName}"`
    - E.g., `SQL_URL="mysql://root:supersecretpassword@localhost:3306/GuildBuild"`
-3. Create the database using `npm run migrate`. This will also seed test data for you to play around with.
-   - If you only need to seed data, use `npm run seed`
-4. At this point, your database should be up to date. If you need to update the schema now, follow the next steps:
-5. TODO: Create a migration
-6. Update your database using `npm run migrate` again.
-7. If you need to update seed data, follow the next steps:
-8. Keep seed client in sync with your database using `npm run postmigrate`.
-9. Update `prisma/seed/seed.ts` with revised data.
-10. Test our your new seed using `npm run seed`
+3. Get the most up to date database schema using `npm run migrate`. This will also seed test data for you to play around with
+4. If you need to update the schema, follow the next steps:
+5. Make changes in prisma/schema.prisma
+6. Create a new migration using `npm run migrate -- --name <name your migration>`
+7. If you need to update seed data, do so in `prisma/seed/seed.ts`
+8. If you only updated seed data (and not the schema) you can stip steps 4-6 and just test your new seed using `npx prisma db seed`
 
 To start a development server, run these commands in terminal:
 1. Install dependencies using `npm install`.
@@ -31,10 +28,13 @@ To start a development server, run these commands in terminal:
    - This uses nodemon which will track real time updates to your files and restart the server accordingly.
 
 Once you are done with your changes, run these commands in terminal:
-1. Install dependencies using `npm install --omit=dev`
-2. Generate corresponding JavaScript files using `npm run build`
+1. Generate corresponding JavaScript files using `npm run build`
    - Node does not run on TypeScript so we need to create them so it runs
-3. Test that it would work in production using `npm run start`
+2. Test that it would work in production using `npm run start`
+
+## Spawning production server: TODO
+`npm install --omit=dev`
+`npx prisma db seed -- --skipTest`
 
 ## Technical Details
 The server is created using Node.js, Express, Prisma, and MySQL.

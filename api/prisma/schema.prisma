@@ -22,13 +22,13 @@ model Guild {
   // foreign key to game guild is for
   gameId     Int     @map("game_id")
   game       Game    @relation(fields: [gameId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "guild_game_fk")
+  // foreign key to server guild is being hosted in
+  serverId   Int     @map("server_id")
+  server     Server  @relation(fields: [serverId], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "guild_server_fk")
   // unique identifer for guild in game
   guildId    String  @map("guild_id") @db.VarChar(32)
   // name of guild
   name       String  @db.VarChar(255)
-  // foreign key to server guild is being hosted in. a guild can only belong to one server at a time.
-  serverId   Int     @map("server_id")
-  server     Server  @relation(fields: [serverId], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "guild_server_fk")
   // whether the guild is active
   active     Boolean @default(true)
   // all roles related to guild
@@ -36,7 +36,7 @@ model Guild {
   // who applied to this guild
   applicants GuildApplicant[]
 
-  @@unique([gameId, guildId], map: "uc_guild")
+  @@unique([gameId, guildId, serverId], map: "uc_guild")
 }
 
 // Applicants to guilds
@@ -111,13 +111,13 @@ model UserRole {
   roleType  Int          @map("role_type")
   type      UserRoleType @relation(fields: [roleType], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "user_role_type_fk")
   // foreign key to server user role belongs to
-  serverId  Int?         @map("server_id")
-  server    Server?      @relation(fields: [serverId], references: [id], onDelete: SetNull, onUpdate: Cascade, map: "user_role_server_fk")
+  serverId  Int          @map("server_id")
+  server    Server       @relation(fields: [serverId], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "user_role_server_fk")
   // foreign key to guild user role belongs to
   guildId   Int?         @map("guild_id")
   guild     Guild?       @relation(fields: [guildId], references: [id], onDelete: SetNull, onUpdate: Cascade, map: "user_role_guild_fk")
   // discord ID linked to role. Let it be null in case there is no discord set up
-  discordId String?       @map("discord_id") @unique(map: "uc_user_role") @db.VarChar(255)
+  discordId String?      @map("discord_id") @unique(map: "uc_user_role") @db.VarChar(255)
   // which users has this role
   users     UserRelation[]
 

@@ -10,12 +10,12 @@ CREATE TABLE `Game` (
 CREATE TABLE `Guild` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `game_id` INTEGER NOT NULL,
+    `server_id` INTEGER NOT NULL,
     `guild_id` VARCHAR(32) NOT NULL,
     `name` VARCHAR(255) NOT NULL,
-    `server_id` INTEGER NOT NULL,
     `active` BOOLEAN NOT NULL DEFAULT true,
 
-    UNIQUE INDEX `uc_guild`(`game_id`, `guild_id`),
+    UNIQUE INDEX `uc_guild`(`game_id`, `guild_id`, `server_id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -67,7 +67,7 @@ CREATE TABLE `User_Role` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(255) NOT NULL,
     `role_type` INTEGER NOT NULL,
-    `server_id` INTEGER NULL,
+    `server_id` INTEGER NOT NULL,
     `guild_id` INTEGER NULL,
     `discord_id` VARCHAR(255) NULL,
 
@@ -108,7 +108,7 @@ ALTER TABLE `User_Relation` ADD CONSTRAINT `user_relation_role_fk` FOREIGN KEY (
 ALTER TABLE `User_Role` ADD CONSTRAINT `user_role_type_fk` FOREIGN KEY (`role_type`) REFERENCES `User_Role_Type`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `User_Role` ADD CONSTRAINT `user_role_server_fk` FOREIGN KEY (`server_id`) REFERENCES `Server`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `User_Role` ADD CONSTRAINT `user_role_server_fk` FOREIGN KEY (`server_id`) REFERENCES `Server`(`id`) ON DELETE NO ACTION ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `User_Role` ADD CONSTRAINT `user_role_guild_fk` FOREIGN KEY (`guild_id`) REFERENCES `Guild`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
