@@ -4,7 +4,6 @@ import { DefaultArgs } from '@prisma/client/runtime/library';
 
 export const messages = {
     missingObject: 'Missing server object',
-    missingName: 'Missing name property',
     notActive: 'Server has been deleted',
     mismatchDiscordId: 'Trying to overwrite discord ID? Suspicious...'
 }
@@ -23,7 +22,7 @@ export class ServerModel extends Model<Prisma.ServerDelegate, Server, Prisma.Ser
      * @param whereArgs the filters
      * @returns array of servers
      */
-    public async get(whereArgs?: Partial<Prisma.ServerWhereInput>): Promise<Server[]> {
+    public override async get(whereArgs?: Partial<Prisma.ServerWhereInput>): Promise<Server[]> {
         return await this.__delegate.findMany({
             where: whereArgs
         });
@@ -34,12 +33,9 @@ export class ServerModel extends Model<Prisma.ServerDelegate, Server, Prisma.Ser
      * @param data server info
      * @returns created server
      */
-    public async create(data: any): Promise<Server> {
+    public override async create(data: any): Promise<Server> {
         if (!data) {
             throw new Error(messages.missingObject);
-        }
-        if (!data.name) {
-            throw new Error(messages.missingName);
         }
         return await this.__delegate.create({
             data: this.__getServerData(data)
@@ -52,7 +48,7 @@ export class ServerModel extends Model<Prisma.ServerDelegate, Server, Prisma.Ser
      * @param original original info
      * @returns updated server
      */
-    public async update(data: any, original: Server): Promise<Server> {
+    public override async update(data: any, original: Server): Promise<Server> {
         if (!data) {
             throw new Error(messages.missingObject);
         }

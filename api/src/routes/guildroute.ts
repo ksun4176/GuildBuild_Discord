@@ -4,7 +4,7 @@ import { GuildModel } from "../classes/guildmodel";
 import { RouteParameters } from 'express-serve-static-core';
 import { Route } from "./route";
 
-type Params<T extends string> = Partial<RouteParameters<':gameId'>> & Partial<RouteParameters<':serverId'>> & RouteParameters<T>;
+type Params<T extends string> = Partial<RouteParameters<':serverId'>> & RouteParameters<T>;
 
 export class GuildRoute extends Route<GuildModel> {
     protected __model: GuildModel;
@@ -17,17 +17,13 @@ export class GuildRoute extends Route<GuildModel> {
     protected override __setUpRoute() {
         const rootRoute = '/';
         this.route.get<typeof rootRoute,Params<typeof rootRoute>>(rootRoute, async (req, res, _next) => {
-            let { gameId, serverId } = req.params;
-            let parsedGameId = gameId ? parseInt(gameId) : undefined;
+            let { serverId } = req.params;
             let parsedServerId = serverId ? parseInt(serverId) : undefined;
             try {
                 const whereArgs: Partial<Prisma.GuildWhereInput> = {
                     active: true
                 };
-                if (parsedGameId) {
-                    whereArgs.gameId = parsedGameId;
-                }
-                else if (parsedServerId) {
+                if (parsedServerId) {
                     whereArgs.serverId = parsedServerId;
                     // look for gameId query
                     const queryGameId = req.query.gameId;
@@ -49,13 +45,9 @@ export class GuildRoute extends Route<GuildModel> {
         });
 
         this.route.post<typeof rootRoute,Params<typeof rootRoute>>(rootRoute, async (req, res, _next) => {
-            let { gameId, serverId } = req.params;
+            let { serverId } = req.params;
             const guild = req.body.guild;
-            const parsedGameId = gameId ? parseInt(gameId) : guild.gameId;
             const parsedServerId = serverId ? parseInt(serverId) : guild.serverId;
-            if (parsedGameId) {
-                guild.gameId = parsedGameId;
-            }
             if (parsedServerId) {
                 guild.serverId = parsedServerId;
             }
@@ -86,17 +78,11 @@ export class GuildRoute extends Route<GuildModel> {
 
         const paramRoute = '/:guildId';
         this.route.get<typeof paramRoute,Params<typeof paramRoute>>(paramRoute, (req, res, _next) => {
-            let { gameId, serverId } = req.params;
-            const parsedGameId = gameId ? parseInt(gameId) : undefined;
+            let { serverId } = req.params;
             const parsedServerId = serverId ? parseInt(serverId) : undefined;
 
             let guildOriginal: Partial<Guild> = req.body.guildOriginal;
-            if (parsedGameId && parsedGameId !== guildOriginal.gameId) {
-                console.error('Guild is not for this game');
-                res.status(404);
-                return;
-            }
-            else if (parsedServerId && parsedServerId !== guildOriginal.serverId) {
+            if (parsedServerId && parsedServerId !== guildOriginal.serverId) {
                 console.error('Guild does not belong to this server');
                 res.status(404);
                 return;
@@ -113,18 +99,12 @@ export class GuildRoute extends Route<GuildModel> {
         });
 
         this.route.put<typeof paramRoute,Params<typeof paramRoute>>(paramRoute, async (req, res, _next) => {
-            let { gameId, serverId } = req.params;
-            const parsedGameId = gameId ? parseInt(gameId) : undefined;
+            let { serverId } = req.params;
             const parsedServerId = serverId ? parseInt(serverId) : undefined;
 
             const guild = req.body.guild;
             let guildOriginal: Guild = req.body.guildOriginal;
-            if (parsedGameId && parsedGameId !== guildOriginal.gameId) {
-                console.error('Guild is not for this game');
-                res.status(400);
-                return;
-            }
-            else if (parsedServerId && parsedServerId !== guildOriginal.serverId) {
+            if (parsedServerId && parsedServerId !== guildOriginal.serverId) {
                 console.error('Guild does not belong to this server');
                 res.status(400);
                 return;
@@ -140,17 +120,11 @@ export class GuildRoute extends Route<GuildModel> {
         });
 
         this.route.delete<typeof paramRoute,Params<typeof paramRoute>>(paramRoute, async (req, res, _next) => {
-            let { gameId, serverId } = req.params;
-            const parsedGameId = gameId ? parseInt(gameId) : undefined;
+            let { serverId } = req.params;
             const parsedServerId = serverId ? parseInt(serverId) : undefined;
 
             const guildOriginal: Guild = req.body.guildOriginal;
-            if (parsedGameId && parsedGameId !== guildOriginal.gameId) {
-                console.error('Guild is not for this game');
-                res.status(404);
-                return;
-            }
-            else if (parsedServerId && parsedServerId !== guildOriginal.serverId) {
+            if (parsedServerId && parsedServerId !== guildOriginal.serverId) {
                 console.error('Guild does not belong to this server');
                 res.status(404);
                 return;

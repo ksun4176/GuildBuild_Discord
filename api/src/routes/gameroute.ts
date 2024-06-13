@@ -1,7 +1,6 @@
 import { RouterOptions } from "express";
 import { Game, PrismaClient } from '@prisma/client'
 import { GameModel } from "../classes/gamemodel";
-import { GuildRoute } from "./guildroute";
 import { Route } from "./route";
 
 export class GameRoute extends Route<GameModel> {
@@ -38,9 +37,6 @@ export class GameRoute extends Route<GameModel> {
                 res.sendStatus(404);
             }
         });
-
-        const guildRoute = new GuildRoute(this.__prisma, { mergeParams: true }).route;
-        this.route.use('/:gameId/guilds', guildRoute);
 
         this.route.get('/:gameId',  (req, res, _next) => {
             let gameOriginal: Game = req.body.gameOriginal;

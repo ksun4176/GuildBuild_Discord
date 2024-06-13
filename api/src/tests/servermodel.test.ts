@@ -20,14 +20,13 @@ describe('ServerModel', () => {
             await serverModel.create(data);
             expect(prismaMock.server.create).toHaveBeenLastCalledWith({ data: data });
         });
-        test('with no name will error out', async () => {
+        test('with missing data', async () => {
             expect.assertions(1);
-            const data = {};
             try {
-                await serverModel.create(data);
+                await serverModel.create(undefined as any);
             }
             catch (err) {
-                expect(err).toEqual(new Error(messages.missingName));
+                expect(err).toEqual(new Error(messages.missingObject));
             }
         });
     });

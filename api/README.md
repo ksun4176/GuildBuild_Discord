@@ -40,6 +40,9 @@ Once you are done with your changes, run these commands in terminal:
 The server is created using Node.js, Express, Prisma, and MySQL.
 The languages we are using are TypeScript, ...
 
+How to send a request using cURL:
+`curl -v -H "Content-Type: application/json" -X POST -d "{ \"server\": { \"name\":\"kaitest\" } }" http://localhost:9000/servers`
+
 ### APIs:
 /games
 - Data structure:
@@ -48,8 +51,6 @@ The languages we are using are TypeScript, ...
   - GET: Retrieve all games
 - /games/{gameId}
   - GET: Retrieve one game
-- /games/{gameId}/guilds
-  - Links up to the /guilds route with some gameId checking
 /servers
 - Data structure:
   - name: name of server
@@ -68,9 +69,9 @@ The languages we are using are TypeScript, ...
 /guilds
 - Data structure:
   - gameId: ID of game this guild is for
+  - serverId: ID of server this guild is in
   - guildId: In game guild ID
   - name: name of guild
-  - serverId: ID of server this guild is in
 - /guilds
   - GET: Retrieve all active guilds (must be given context from a parent route)
   - POST: Add a new guild

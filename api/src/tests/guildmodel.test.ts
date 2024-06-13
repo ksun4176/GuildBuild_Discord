@@ -26,77 +26,30 @@ describe('GuildModel', () => {
             await guildModel.create(data);
             expect(prismaMock.guild.create).toHaveBeenLastCalledWith({ data: data });
         });
-        test('with no gameId will error out', async () => {
+        test('with missing data', async () => {
             expect.assertions(1);
-            const data = { 
-                serverId: 1,
-                guildId: "guildId",
-                name: "test" 
-            };
             try {
-                await guildModel.create(data);
+                await guildModel.create(undefined as any);
             }
             catch (err) {
-                expect(err).toEqual(new Error(messages.missingGame));
-            }
-        });
-        test('with no serverId will error out', async () => {
-            expect.assertions(1);
-            const data = { 
-                gameId: 2,
-                guildId: "guildId",
-                name: "test" 
-            };
-            try {
-                await guildModel.create(data);
-            }
-            catch (err) {
-                expect(err).toEqual(new Error(messages.missingServer));
-            }
-        });
-        test('with no name will error out', async () => {
-            expect.assertions(1);
-            const data = { 
-                serverId: 1,
-                gameId: 2,
-                guildId: "guildId",
-            };
-            try {
-                await guildModel.create(data);
-            }
-            catch (err) {
-                expect(err).toEqual(new Error(messages.missingName));
-            }
-        });
-        test('with no guildId will error out', async () => {
-            expect.assertions(1);
-            const data = { 
-                serverId: 1,
-                gameId: 2,
-                name: "test" 
-            };
-            try {
-                await guildModel.create(data);
-            }
-            catch (err) {
-                expect(err).toEqual(new Error(messages.missingGuildId));
+                expect(err).toEqual(new Error(messages.missingObject));
             }
         });
     });
     describe('update a guild', () => {
-        test('that is active without changing the game ID or guild ID will update the guild', async () => {
+        test('that is active without changing the game ID, guild ID, or server ID will update the guild', async () => {
             const data = { 
                 gameId: 1,
                 guildId: "guildId",
-                name: "test",
+                name: "testnew",
                 serverId: 2
             };
             const original: Guild = {
                 id: 1,
                 gameId: 1,
                 guildId: "guildId",
-                name: "testnew",
-                serverId: 3,
+                name: "test",
+                serverId: 2,
                 active: true
             }
             await guildModel.update(data, original);
@@ -110,15 +63,15 @@ describe('GuildModel', () => {
             const data = { 
                 gameId: 1,
                 guildId: "guildId",
-                name: "test",
+                name: "testnew",
                 serverId: 2
             };
             const original: Guild = {
                 id: 1,
                 gameId: 1,
                 guildId: "guildId",
-                name: "testnew",
-                serverId: 3,
+                name: "test",
+                serverId: 2,
                 active: false
             }
             try {
@@ -133,15 +86,15 @@ describe('GuildModel', () => {
             const data = { 
                 gameId: 1,
                 guildId: "guildId",
-                name: "test",
+                name: "testnew",
                 serverId: 2
             };
             const original: Guild = {
                 id: 1,
                 gameId: 4,
                 guildId: "guildId",
-                name: "testnew",
-                serverId: 3,
+                name: "test",
+                serverId: 2,
                 active: true
             }
             try {
@@ -155,16 +108,16 @@ describe('GuildModel', () => {
             expect.assertions(1);
             const data = { 
                 gameId: 1,
-                guildId: "guildId",
+                guildId: "guildIdNew",
                 name: "test",
                 serverId: 2
             };
             const original: Guild = {
                 id: 1,
                 gameId: 1,
-                guildId: "guildIdNew",
+                guildId: "guildId",
                 name: "testnew",
-                serverId: 3,
+                serverId: 2,
                 active: true
             }
             try {
@@ -172,6 +125,29 @@ describe('GuildModel', () => {
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.mismatchGuild));
+            }
+        });
+        test('to overwrite serverId will error out', async () => {
+            expect.assertions(1);
+            const data = { 
+                gameId: 1,
+                guildId: "guildId",
+                name: "testnew",
+                serverId: 3
+            };
+            const original: Guild = {
+                id: 1,
+                gameId: 1,
+                guildId: "guildId",
+                name: "test",
+                serverId: 2,
+                active: true
+            }
+            try {
+                await guildModel.update(data, original);
+            }
+            catch (err) {
+                expect(err).toEqual(new Error(messages.mismatchServer));
             }
         });
     });

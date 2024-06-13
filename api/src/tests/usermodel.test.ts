@@ -23,15 +23,13 @@ describe('UserModel', () => {
             await userModel.create(data);
             expect(prismaMock.user.create).toHaveBeenLastCalledWith({ data: data });
         });
-        test('with no name will error out', async () => {
+        test('with no data', async () => {
             expect.assertions(1);
-            const data = {
-            };
             try {
-                await userModel.create(data);
+                await userModel.create(undefined as any);
             }
             catch (err) {
-                expect(err).toEqual(new Error(messages.missingName));
+                expect(err).toEqual(new Error(messages.missingObject));
             }
         });
     });

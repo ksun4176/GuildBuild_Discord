@@ -4,7 +4,6 @@ import { DefaultArgs } from '@prisma/client/runtime/library';
 
 export const messages = {
     missingObject: 'Missing user object',
-    missingName: 'Missing name property',
     notActive: 'User has been deleted',
     mismatchDiscordId: 'Trying to overwrite discord ID? Suspicious...'
 }
@@ -23,7 +22,7 @@ export class UserModel extends Model<Prisma.UserDelegate, User, Prisma.UserWhere
      * @param whereArgs the filters
      * @returns array of users
      */
-    public async get(whereArgs?: Partial<Prisma.UserWhereInput>): Promise<User[]> {
+    public override async get(whereArgs?: Partial<Prisma.UserWhereInput>): Promise<User[]> {
         return await this.__delegate.findMany({
             where: whereArgs
         });
@@ -34,12 +33,9 @@ export class UserModel extends Model<Prisma.UserDelegate, User, Prisma.UserWhere
      * @param data user info
      * @returns created user
      */
-    public async create(data: any): Promise<User> {
+    public override async create(data: any): Promise<User> {
         if (!data) {
             throw new Error(messages.missingObject);
-        }
-        if (!data.name) {
-            throw new Error(messages.missingName);
         }
         return await this.__delegate.create({
             data: this.__getUserData(data)
@@ -52,7 +48,7 @@ export class UserModel extends Model<Prisma.UserDelegate, User, Prisma.UserWhere
      * @param original original info
      * @returns updated user
      */
-    public async update(data: any, original: User): Promise<User> {
+    public override async update(data: any, original: User): Promise<User> {
         if (!data) {
             throw new Error(messages.missingObject);
         }
@@ -72,7 +68,7 @@ export class UserModel extends Model<Prisma.UserDelegate, User, Prisma.UserWhere
      * Delete a user
      * @param original original info
      */
-    public async delete(original: User): Promise<void> {
+    public override async delete(original: User): Promise<void> {
         await this.__delegate.update({
             where: { id: original.id },
             data: { active: false }

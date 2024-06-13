@@ -4,13 +4,10 @@ import { DefaultArgs } from '@prisma/client/runtime/library';
 
 export const messages = {
     missingObject: 'Missing guild object',
-    missingServer: 'Missing which server this guild belongs to',
-    missingGame: 'Missing which game this guild is for',
-    missingGuildId: 'Missing in game guild ID',
-    missingName: 'Missing name property',
     notActive: 'Guild has been deleted',
     mismatchGame: 'Trying to overwrite game ID? Suspicious...',
-    mismatchGuild: 'Trying to overwrite guild ID? Suspicious...'
+    mismatchGuild: 'Trying to overwrite guild ID? Suspicious...',
+    mismatchServer: 'Trying to overwrite server ID? Suspicious...'
 }
 
 export class GuildModel extends Model<Prisma.GuildDelegate, Guild, Prisma.GuildWhereInput> {
@@ -27,7 +24,7 @@ export class GuildModel extends Model<Prisma.GuildDelegate, Guild, Prisma.GuildW
      * @param whereArgs the filters
      * @returns array of guilds
      */
-    public async get(whereArgs?: Partial<Prisma.GuildWhereInput>): Promise<Guild[]> {
+    public override async get(whereArgs?: Partial<Prisma.GuildWhereInput>): Promise<Guild[]> {
         return await this.__delegate.findMany({
             where: whereArgs
         });
@@ -40,21 +37,9 @@ export class GuildModel extends Model<Prisma.GuildDelegate, Guild, Prisma.GuildW
      * @param data guild info
      * @returns created guild
      */
-    public async create(data: any): Promise<Guild> {
+    public override async create(data: any): Promise<Guild> {
         if (!data) {
             throw new Error(messages.missingObject);
-        }
-        if (!data.gameId) {
-            throw new Error(messages.missingGame);
-        }
-        if (!data.serverId) {
-            throw new Error(messages.missingServer);
-        }
-        if (!data.guildId) {
-            throw new Error(messages.missingGuildId);
-        }
-        if (!data.name) {
-            throw new Error(messages.missingName);
         }
         let validData = this.__getGuildData(data);
         return await this.__delegate.create({
@@ -68,7 +53,7 @@ export class GuildModel extends Model<Prisma.GuildDelegate, Guild, Prisma.GuildW
      * @param original original info
      * @returns updated guild
      */
-    public async update(data: any, original: Guild): Promise<Guild> {
+    public override async update(data: any, original: Guild): Promise<Guild> {
         if (!data) {
             throw new Error(messages.missingObject);
         }
@@ -81,6 +66,9 @@ export class GuildModel extends Model<Prisma.GuildDelegate, Guild, Prisma.GuildW
         if (original.guildId && data.guildId && original.guildId !== data.guildId) {
             throw new Error(messages.mismatchGuild);
         }
+        if (original.serverId && data.serverId && original.serverId !== data.serverId) {
+            throw new Error(messages.mismatchServer);
+        }
         return await this.__delegate.update({
             where: { id: original.id },
             data: this.__getGuildData(data)
@@ -91,7 +79,7 @@ export class GuildModel extends Model<Prisma.GuildDelegate, Guild, Prisma.GuildW
      * Delete a guild
      * @param original original info
      */
-    public async delete(original: Guild): Promise<void> {
+    public override async delete(original: Guild): Promise<void> {
         await this.__delegate.update({
             where: { id: original.id },
             data: { active: false }
