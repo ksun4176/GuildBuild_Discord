@@ -49,8 +49,10 @@ How to send a request using cURL:
   - name: name of game
 - /games
   - GET: Retrieve all games
+  - POST: Add a new game
 - /games/{gameId}
   - GET: Retrieve one game
+  - PUT: Update the game (must be given context from a parent route)
 /servers
 - Data structure:
   - name: name of server
@@ -62,31 +64,26 @@ How to send a request using cURL:
   - GET: Retrieve one server
   - PUT: Update the server
   - DELETE: Deactivate the server
-- /servers/{serverId}/guilds?gameId={gameId}
-  - Links up to the /guilds route with some serverId checking
-- /servers/{serverId}/users?gameId={gameId}
-  - Links up to the /users route with some serverId checking
-/guilds
-- Data structure:
-  - gameId: ID of game this guild is for
-  - serverId: ID of server this guild is in
-  - guildId: In game guild ID
-  - name: name of guild
-- /guilds
-  - GET: Retrieve all active guilds (must be given context from a parent route)
-  - POST: Add a new guild
-- /guilds/{guildId}
-  - GET: Retrieve one guild
-  - PUT: Update the guild
-  - DELETE: Deactivate the guild
-- /guilds/{guildId}/users
-  - Links up to the /users route with some guildId checking
+- /servers/{serverId}/games
+  - links up to the /games route with some serverId checking
+- /servers/{serverId}/guilds
+  - Data structure:
+    - gameId: ID of game this guild is for
+    - guildId: In game guild ID
+    - name: name of guild
+  - /servers/{serverId}/guilds?gameId={gameId}
+    - GET: Retrieve all active guilds
+    - POST: Add a new guild
+  - /servers/{serverId}/guilds/{guildId}
+    - GET: Retrieve one guild
+    - PUT: Update the guild
+    - DELETE: Deactivate the guild
 /users
 - Data structure:
   - name: name of user
   - discordId: Discord user ID
-- /users
-  - GET: Retrieve all users (must be given context from a parent route)
+- /users?serverId={serverId}&gameId={gameId}&guildId={guildId}
+  - GET: Retrieve all users
   - POST: Add a new user
 - /users/{userId}
   - GET: Retrieve one user

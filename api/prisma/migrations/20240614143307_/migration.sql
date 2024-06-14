@@ -3,6 +3,7 @@ CREATE TABLE `Game` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(255) NOT NULL,
 
+    UNIQUE INDEX `uc_game`(`name`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -23,10 +24,11 @@ CREATE TABLE `Guild` (
 CREATE TABLE `Guild_Applicant` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `user_id` INTEGER NOT NULL,
-    `guild_id` INTEGER NULL,
-    `server_id` INTEGER NULL,
+    `guild_id` INTEGER NOT NULL,
+    `game_id` INTEGER NOT NULL,
+    `server_id` INTEGER NOT NULL,
 
-    UNIQUE INDEX `uc_guild_applicant`(`user_id`, `server_id`),
+    UNIQUE INDEX `uc_guild_applicant`(`user_id`, `game_id`, `server_id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -66,12 +68,13 @@ CREATE TABLE `User_Relation` (
 CREATE TABLE `User_Role` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(255) NOT NULL,
-    `role_type` INTEGER NOT NULL,
+    `role_type` INTEGER NULL,
     `server_id` INTEGER NOT NULL,
     `guild_id` INTEGER NULL,
     `discord_id` VARCHAR(255) NULL,
 
     UNIQUE INDEX `uc_user_role`(`discord_id`),
+    UNIQUE INDEX `uc_user_role_2`(`role_type`, `server_id`, `guild_id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -93,10 +96,10 @@ ALTER TABLE `Guild` ADD CONSTRAINT `guild_server_fk` FOREIGN KEY (`server_id`) R
 ALTER TABLE `Guild_Applicant` ADD CONSTRAINT `guild_applicant_user_fk` FOREIGN KEY (`user_id`) REFERENCES `User`(`id`) ON DELETE NO ACTION ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Guild_Applicant` ADD CONSTRAINT `guild_applicant_guild_fk` FOREIGN KEY (`guild_id`) REFERENCES `Guild`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Guild_Applicant` ADD CONSTRAINT `guild_applicant_guild_fk` FOREIGN KEY (`guild_id`) REFERENCES `Guild`(`id`) ON DELETE NO ACTION ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Guild_Applicant` ADD CONSTRAINT `guild_applicant_server_fk` FOREIGN KEY (`server_id`) REFERENCES `Server`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Guild_Applicant` ADD CONSTRAINT `guild_applicant_server_fk` FOREIGN KEY (`server_id`) REFERENCES `Server`(`id`) ON DELETE NO ACTION ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `User_Relation` ADD CONSTRAINT `user_relation_user_fk` FOREIGN KEY (`user_id`) REFERENCES `User`(`id`) ON DELETE NO ACTION ON UPDATE CASCADE;

@@ -7,10 +7,24 @@ describe('GameModel', () => {
         gameModel = new GameModel(prismaMock);
     });
     describe('gets games', () => {
-        test('with filters provided will pass the filters as a condition', async () => {
-            const filters = { id: 1 };
-            await gameModel.get(filters);
-            expect(prismaMock.game.findMany).toHaveBeenLastCalledWith({ where: filters });
+        test('with args will pass the args on', async () => {
+            const args = { where: { name: 'test' } };
+            await gameModel.findMany(args);
+            expect(prismaMock.game.findMany).toHaveBeenLastCalledWith(args);
+        });
+    });
+    describe('gets one game', () => {
+        test('with args will pass the args on', async () => {
+            const args = { where: { name: 'test' } };
+            await gameModel.findOne(args);
+            expect(prismaMock.game.findUniqueOrThrow).toHaveBeenLastCalledWith(args);
+        });
+    });
+    describe('create game', () => {
+        test('with data will create the game', async () => {
+            const args = { data: { name: "test" } };
+            await gameModel.create(args);
+            expect(prismaMock.game.create).toHaveBeenLastCalledWith(args);
         });
     });
 });

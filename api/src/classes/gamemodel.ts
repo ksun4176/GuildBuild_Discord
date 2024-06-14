@@ -1,40 +1,39 @@
 import { PrismaClient, Prisma, Game } from '@prisma/client'
 import { Model } from './model';
-import { DefaultArgs } from '@prisma/client/runtime/library';
 
-export const messages = {
-    missingObject: 'Missing game object',
-    missingName: 'Missing name property',
-}
-
-export class GameModel extends Model<Prisma.GameDelegate, Game, Prisma.GameWhereInput> {    
-    protected override __delegate: Prisma.GameDelegate<DefaultArgs>;
+export class GameModel extends Model<'Game'> {
+    protected override __delegate: Prisma.GameDelegate;
 
     constructor(prisma: PrismaClient) {
         super(prisma);
         this.__delegate = this.__prisma.game;
     }
+    
+    public override async findMany(args?: Prisma.GameFindManyArgs) {
+        return await this.__delegate.findMany(args);
+    }
 
-    /**
-     * Get games that match the filters
-     * @param whereArgs the filters
-     * @returns array of games
-     */
-    public override async get(whereArgs?: Partial<Prisma.GameWhereInput>): Promise<Game[]> {
-        return await this.__delegate.findMany({
-            where: whereArgs
-        });
+    public override async findOne(args?: Prisma.GameFindUniqueOrThrowArgs) {
+        return await this.__delegate.findUniqueOrThrow(args)
+    }
+
+    public override async create(args: Prisma.GameCreateArgs) {
+        args.data = this.__getValidData(args.data);
+        return await this.__delegate.create( args);
     }
     
-    public override create(_data: any): Promise<Game> {
+    public override update(_args: Prisma.GameUpdateArgs, _original: Game): Promise<Game> {
         throw new Error('Method not implemented.');
     }
-    
-    public override update(_data: any, _original: { id: number; name: string; }): Promise<Game> {
+
+    public override delete(_original: Game): Promise<void> {
         throw new Error('Method not implemented.');
     }
-    public override delete(_original: { id: number; name: string; }): Promise<void> {
-        throw new Error('Method not implemented.');
+
+    protected override __getValidData(data: any, _original?: Game) {
+        return {
+            name: data.name
+        }
     }
 }
 

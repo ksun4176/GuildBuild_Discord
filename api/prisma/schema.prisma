@@ -11,7 +11,7 @@ datasource db {
 model Game {
   id     Int    @id @default(autoincrement())
   // name of game
-  name   String @db.VarChar(255)
+  name   String @db.VarChar(255) @unique(map: "uc_game")
   // all guilds related to game
   guilds Guild[]
 }
@@ -46,13 +46,15 @@ model GuildApplicant {
   userId   Int     @map("user_id")
   user     User    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "guild_applicant_user_fk")
   // foreign key to guild user applied to
-  guildId  Int?    @map("guild_id")
-  guild    Guild?  @relation(fields: [guildId], references: [id], onDelete: SetNull, onUpdate: Cascade, map: "guild_applicant_guild_fk")
+  guildId  Int    @map("guild_id")
+  guild    Guild  @relation(fields: [guildId], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "guild_applicant_guild_fk")
+  // foreign key to game user applied to
+  gameId   Int    @map("game_id")
   // foreign key to server user applied to
-  serverId Int?    @map("server_id")
-  server   Server? @relation(fields: [serverId], references: [id], onDelete: SetNull, onUpdate: Cascade, map: "guild_applicant_server_fk")
+  serverId Int    @map("server_id")
+  server   Server @relation(fields: [serverId], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "guild_applicant_server_fk")
 
-  @@unique([userId, serverId], map: "uc_guild_applicant")
+  @@unique([userId, gameId, serverId], map: "uc_guild_applicant")
   @@map("Guild_Applicant")
 }
 
@@ -104,23 +106,24 @@ model UserRelation {
 
 // Which roles correspond with which user_role_type
 model UserRole {
-  id        Int          @id @default(autoincrement())
+  id        Int           @id @default(autoincrement())
   // name of user role
-  name      String       @db.VarChar(255)
+  name      String        @db.VarChar(255)
   // foreign key to type of user role
-  roleType  Int          @map("role_type")
-  type      UserRoleType @relation(fields: [roleType], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "user_role_type_fk")
+  roleType  Int?          @map("role_type")
+  type      UserRoleType? @relation(fields: [roleType], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "user_role_type_fk")
   // foreign key to server user role belongs to
-  serverId  Int          @map("server_id")
-  server    Server       @relation(fields: [serverId], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "user_role_server_fk")
+  serverId  Int           @map("server_id")
+  server    Server        @relation(fields: [serverId], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "user_role_server_fk")
   // foreign key to guild user role belongs to
-  guildId   Int?         @map("guild_id")
-  guild     Guild?       @relation(fields: [guildId], references: [id], onDelete: SetNull, onUpdate: Cascade, map: "user_role_guild_fk")
+  guildId   Int?          @map("guild_id")
+  guild     Guild?        @relation(fields: [guildId], references: [id], onDelete: SetNull, onUpdate: Cascade, map: "user_role_guild_fk")
   // discord ID linked to role. Let it be null in case there is no discord set up
-  discordId String?      @map("discord_id") @unique(map: "uc_user_role") @db.VarChar(255)
+  discordId String?       @map("discord_id") @unique(map: "uc_user_role") @db.VarChar(255)
   // which users has this role
   users     UserRelation[]
 
+  @@unique([roleType, serverId, guildId], map: "uc_user_role_2")
   @@map("User_Role")
 }
 

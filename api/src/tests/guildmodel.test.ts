@@ -8,74 +8,68 @@ describe('GuildModel', () => {
         guildModel = new GuildModel(prismaMock);
     });
     describe('gets guilds', () => {
-        test('with filters provided will pass the filters as a condition', async () => {
-            const filters = { active: true };
-            await guildModel.get(filters);
-            expect(prismaMock.guild.findMany).toHaveBeenLastCalledWith({ where: filters });
+        test('with args will pass the args on', async () => {
+            const args = { where: { active: true } };
+            await guildModel.findMany(args);
+            expect(prismaMock.guild.findMany).toHaveBeenLastCalledWith(args);
+        });
+    });
+    describe('gets one guild', () => {
+        test('with args will pass the args on', async () => {
+            const args = { where: { id: 1 } };
+            await guildModel.findOne(args);
+            expect(prismaMock.guild.findUniqueOrThrow).toHaveBeenLastCalledWith(args);
         });
     });
     describe('create guild', () => {
-        test('with required data will create the guild', async () => {
-            const data = { 
-                guildId: "guildId",
-                name: "test",
-                serverId: 1,
-                gameId: 2
+        test('with data will create the guild', async () => {
+            const args = { 
+                data: { 
+                    guildId: "guildId",
+                    name: "test",
+                    serverId: 1,
+                    gameId: 2
+                }
             };
-
-            await guildModel.create(data);
-            expect(prismaMock.guild.create).toHaveBeenLastCalledWith({ data: data });
-        });
-        test('with missing data', async () => {
-            expect.assertions(1);
-            try {
-                await guildModel.create(undefined as any);
-            }
-            catch (err) {
-                expect(err).toEqual(new Error(messages.missingObject));
-            }
+            await guildModel.create(args);
+            expect(prismaMock.guild.create).toHaveBeenLastCalledWith(args);
         });
     });
     describe('update a guild', () => {
-        test('that is active without changing the game ID, guild ID, or server ID will update the guild', async () => {
-            const data = { 
-                gameId: 1,
-                guildId: "guildId",
-                name: "testnew",
-                serverId: 2
+        test('that is active by changing the name will update the guild', async () => {
+            const id = 1;
+            const args = {
+                where: { id: id },
+                data: { name: "new" }
             };
             const original: Guild = {
-                id: 1,
-                gameId: 1,
+                id: id,
+                gameId: 2,
                 guildId: "guildId",
                 name: "test",
-                serverId: 2,
+                serverId: 3,
                 active: true
             }
-            await guildModel.update(data, original);
-            expect(prismaMock.guild.update).toHaveBeenLastCalledWith({ 
-                where: { id: original.id },
-                data: data 
-            });
+            await guildModel.update(args, original);
+            expect(prismaMock.guild.update).toHaveBeenLastCalledWith(args);
         });
         test('that is inactive will error out', async () => {
             expect.assertions(1);
-            const data = { 
-                gameId: 1,
-                guildId: "guildId",
-                name: "testnew",
-                serverId: 2
+            const id = 1;
+            const args = {
+                where: { id: id },
+                data: { name: "new" }
             };
             const original: Guild = {
-                id: 1,
-                gameId: 1,
+                id: id,
+                gameId: 2,
                 guildId: "guildId",
                 name: "test",
-                serverId: 2,
+                serverId: 3,
                 active: false
             }
             try {
-                await guildModel.update(data, original);
+                await guildModel.update(args, original);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.notActive));
@@ -83,22 +77,21 @@ describe('GuildModel', () => {
         });
         test('to overwrite gameId will error out', async () => {
             expect.assertions(1);
-            const data = { 
-                gameId: 1,
-                guildId: "guildId",
-                name: "testnew",
-                serverId: 2
+            const id = 1;
+            const args = {
+                where: { id: id },
+                data: { gameId: 4 }
             };
             const original: Guild = {
-                id: 1,
-                gameId: 4,
+                id: id,
+                gameId: 2,
                 guildId: "guildId",
                 name: "test",
-                serverId: 2,
+                serverId: 3,
                 active: true
             }
             try {
-                await guildModel.update(data, original);
+                await guildModel.update(args, original);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.mismatchGame));
@@ -106,22 +99,21 @@ describe('GuildModel', () => {
         });
         test('to overwrite guildId will error out', async () => {
             expect.assertions(1);
-            const data = { 
-                gameId: 1,
-                guildId: "guildIdNew",
-                name: "test",
-                serverId: 2
+            const id = 1;
+            const args = {
+                where: { id: id },
+                data: { guildId: "new" }
             };
             const original: Guild = {
-                id: 1,
-                gameId: 1,
+                id: id,
+                gameId: 2,
                 guildId: "guildId",
-                name: "testnew",
-                serverId: 2,
+                name: "test",
+                serverId: 3,
                 active: true
             }
             try {
-                await guildModel.update(data, original);
+                await guildModel.update(args, original);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.mismatchGuild));
@@ -129,26 +121,27 @@ describe('GuildModel', () => {
         });
         test('to overwrite serverId will error out', async () => {
             expect.assertions(1);
-            const data = { 
-                gameId: 1,
-                guildId: "guildId",
-                name: "testnew",
-                serverId: 3
+            const id = 1;
+            const args = {
+                where: { id: id },
+                data: { serverId: 4 }
             };
             const original: Guild = {
-                id: 1,
-                gameId: 1,
+                id: id,
+                gameId: 2,
                 guildId: "guildId",
                 name: "test",
-                serverId: 2,
+                serverId: 3,
                 active: true
             }
             try {
-                await guildModel.update(data, original);
+                await guildModel.update(args, original);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.mismatchServer));
             }
         });
     });
+
+    // TODO write unit tests for isPlaceholderGuild, createPlaceholderGuild
 });

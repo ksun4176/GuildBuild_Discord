@@ -7,64 +7,58 @@ describe('UserModel', () => {
     beforeEach(() => {
         userModel = new UserModel(prismaMock);
     });
-    describe('gets users', () => {
-        test('with filters provided will pass the filters as a condition', async () => {
-            const filters = { active: true };
-            await userModel.get(filters);
-            expect(prismaMock.user.findMany).toHaveBeenLastCalledWith({ where: filters });
+    describe('gets user', () => {
+        test('with args will pass the args on', async () => {
+            const args = { where: { active: true } };
+            await userModel.findMany(args);
+            expect(prismaMock.user.findMany).toHaveBeenLastCalledWith(args);
+        });
+    });
+    describe('gets one user', () => {
+        test('with args will pass the args on', async () => {
+            const args = { where: { id: 1 } };
+            await userModel.findOne(args);
+            expect(prismaMock.user.findUniqueOrThrow).toHaveBeenLastCalledWith(args);
         });
     });
     describe('create user', () => {
-        test('with required data will create the user', async () => {
-            const data = {
-                name: "test",
-            };
-
-            await userModel.create(data);
-            expect(prismaMock.user.create).toHaveBeenLastCalledWith({ data: data });
-        });
-        test('with no data', async () => {
-            expect.assertions(1);
-            try {
-                await userModel.create(undefined as any);
-            }
-            catch (err) {
-                expect(err).toEqual(new Error(messages.missingObject));
-            }
+        test('with data will create the user', async () => {
+            const args = { data: { name: "test" } };
+            await userModel.create(args);
+            expect(prismaMock.user.create).toHaveBeenLastCalledWith(args);
         });
     });
     describe('update a user', () => {
-        test('that is active without changing the discord ID will update the user', async () => {
-            const data = { 
-                name: "test",
-                discordId: "discordId"
-            };
+        test('that is active by changing the name will update the user', async () => {
+            const id = 1;
+            const args = {
+                where: { id: id },
+                data: { name: "new" }
+            }
             const original: User = {
-                id: 1,
+                id: id,
                 name: "original",
                 discordId: "discordId",
                 active: true
             }
-            await userModel.update(data, original);
-            expect(prismaMock.user.update).toHaveBeenLastCalledWith({ 
-                where: { id: original.id },
-                data: data 
-            });
+            await userModel.update(args, original);
+            expect(prismaMock.user.update).toHaveBeenLastCalledWith(args);
         });
         test('that is inactive will error out', async () => {
             expect.assertions(1);
-            const data = { 
-                name: "test",
-                discordId: "discordId"
-            };
+            const id = 1;
+            const args = {
+                where: { id: id },
+                data: { name: "new" }
+            }
             const original: User = {
-                id: 1,
+                id: id,
                 name: "original",
                 discordId: "discordId",
                 active: false
             }
             try {
-                await userModel.update(data, original);
+                await userModel.update(args, original);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.notActive));
@@ -72,18 +66,19 @@ describe('UserModel', () => {
         });
         test('to overwrite discordId will error out', async () => {
             expect.assertions(1);
-            const data = { 
-                name: "test",
-                discordId: "discordIdNew"
-            };
+            const id = 1;
+            const args = {
+                where: { id: id },
+                data: { discordId: "new" }
+            }
             const original: User = {
-                id: 1,
+                id: id,
                 name: "original",
                 discordId: "discordId",
                 active: true
             }
             try {
-                await userModel.update(data, original);
+                await userModel.update(args, original);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.mismatchDiscordId));

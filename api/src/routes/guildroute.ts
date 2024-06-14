@@ -1,4 +1,4 @@
-import { RouterOptions } from "express";
+import { RouterOptions } from 'express';
 import { Guild, Prisma, PrismaClient } from '@prisma/client'
 import { GuildModel } from "../classes/guildmodel";
 import { RouteParameters } from 'express-serve-static-core';
@@ -17,26 +17,26 @@ export class GuildRoute extends Route<GuildModel> {
     protected override __setUpRoute() {
         const rootRoute = '/';
         this.route.get<typeof rootRoute,Params<typeof rootRoute>>(rootRoute, async (req, res, _next) => {
-            let { serverId } = req.params;
-            let parsedServerId = serverId ? parseInt(serverId) : undefined;
+            const { serverId } = req.params;
+            const parsedServerId = serverId ? parseInt(serverId) : undefined;
             try {
-                const whereArgs: Partial<Prisma.GuildWhereInput> = {
-                    active: true
-                };
-                if (parsedServerId) {
-                    whereArgs.serverId = parsedServerId;
-                    // look for gameId query
-                    const queryGameId = req.query.gameId;
-                    if (typeof queryGameId === "string") {
-                        whereArgs.gameId = parseInt(queryGameId);
+                if (!parsedServerId) {
+                    throw new Error('No server provided');
+                }
+                const args: Prisma.GuildFindManyArgs = { 
+                    where: {
+                         active: true,
+                         serverId: parsedServerId
                     }
+                };
+                args.where = GuildModel.addPlaceholderCriteria(args.where!, true);
+                // look for gameId query
+                const queryGameId = req.query.gameId;
+                if (typeof queryGameId === "string") {
+                    args.where!.gameId = parseInt(queryGameId);
                 }
-                else {
-                    throw new Error('No game or server provided');
-                }
-
-                const guilds = await this.__model.get(whereArgs);
-                res.status(200).json({guilds: guilds});
+                const guilds = await this.__model.findMany(args);
+                res.status(200).json({ guilds: guilds });
             }
             catch (err) {
                 console.error(err);
@@ -45,14 +45,27 @@ export class GuildRoute extends Route<GuildModel> {
         });
 
         this.route.post<typeof rootRoute,Params<typeof rootRoute>>(rootRoute, async (req, res, _next) => {
-            let { serverId } = req.params;
             const guild = req.body.guild;
-            const parsedServerId = serverId ? parseInt(serverId) : guild.serverId;
-            if (parsedServerId) {
-                guild.serverId = parsedServerId;
-            }
+            const { serverId } = req.params;
+            const parsedServerId = serverId ? parseInt(serverId) : undefined;
             try {
-                const guildResult = await this.__model.create(guild);
+                if (!parsedServerId) {
+                    throw new Error('No server provided');
+                }
+                let existingGuildsArgs: Prisma.GuildFindManyArgs = {
+                    where: { 
+                        serverId: parsedServerId,
+                        gameId: guild.gameId
+                    }
+                }
+                existingGuildsArgs.where = GuildModel.addPlaceholderCriteria(existingGuildsArgs.where!);
+                const existingGuilds = await this.__model.findMany(existingGuildsArgs);
+                if (existingGuilds.length === 0) {
+                    // game has not been set up on server
+                    throw new Error('Server does not support game');
+                }
+                guild.serverId = parsedServerId;
+                const guildResult = await this.__model.create({ data: guild });
                 res.status(201).json({guild: guildResult});
             }
             catch (err) {
@@ -63,11 +76,10 @@ export class GuildRoute extends Route<GuildModel> {
 
         this.route.param('guildId', async (req, res, next, guildId)=> {
             try {
-                const guilds = await this.__model.get({ id: +guildId });
-                if (guilds.length !== 1) {
-                    throw new Error('Guild not found');
-                }
-                req.body.guildOriginal = guilds[0];
+                const parsedGuildId = parseInt(guildId);
+                const args: Prisma.GuildFindUniqueOrThrowArgs = { where: { id: parsedGuildId } };
+                const guild = await this.__model.findOne(args);
+                req.body.guildOriginal = guild;
                 next();
             }
             catch (err) {
@@ -78,38 +90,38 @@ export class GuildRoute extends Route<GuildModel> {
 
         const paramRoute = '/:guildId';
         this.route.get<typeof paramRoute,Params<typeof paramRoute>>(paramRoute, (req, res, _next) => {
-            let { serverId } = req.params;
-            const parsedServerId = serverId ? parseInt(serverId) : undefined;
-
             let guildOriginal: Partial<Guild> = req.body.guildOriginal;
-            if (parsedServerId && parsedServerId !== guildOriginal.serverId) {
-                console.error('Guild does not belong to this server');
-                res.status(404);
-                return;
+            const { serverId } = req.params;
+            const parsedServerId = serverId ? parseInt(serverId) : undefined;
+            try {
+                if (!parsedServerId) {
+                    throw new Error('No server provided');
+                }
+                if (!guildOriginal.active) {
+                    // do not give past basic information if inactive
+                    guildOriginal = {
+                        id: guildOriginal.id,
+                        name: guildOriginal.name,
+                        active: guildOriginal.active
+                    };
+                }
+                res.status(200).json({guild: guildOriginal});
             }
-            if (!guildOriginal.active) {
-                // do not give past basic information if inactive
-                guildOriginal = {
-                    id: guildOriginal.id,
-                    name: guildOriginal.name,
-                    active: guildOriginal.active
-                };
+            catch (err) {
+                console.error(err);
+                res.sendStatus(404);
             }
-            res.status(200).json({guild: guildOriginal});
         });
 
         this.route.put<typeof paramRoute,Params<typeof paramRoute>>(paramRoute, async (req, res, _next) => {
-            let { serverId } = req.params;
-            const parsedServerId = serverId ? parseInt(serverId) : undefined;
-
-            const guild = req.body.guild;
             let guildOriginal: Guild = req.body.guildOriginal;
-            if (parsedServerId && parsedServerId !== guildOriginal.serverId) {
-                console.error('Guild does not belong to this server');
-                res.status(400);
-                return;
-            }
+            const guild = req.body.guild;
+            const { serverId } = req.params;
+            const parsedServerId = serverId ? parseInt(serverId) : undefined;
             try {
+                if (!parsedServerId) {
+                    throw new Error('No server provided');
+                }
                 const guildResult = await this.__model.update(guild, guildOriginal);
                 res.status(202).json({guild: guildResult});
             }
@@ -120,16 +132,13 @@ export class GuildRoute extends Route<GuildModel> {
         });
 
         this.route.delete<typeof paramRoute,Params<typeof paramRoute>>(paramRoute, async (req, res, _next) => {
-            let { serverId } = req.params;
+            let guildOriginal: Guild = req.body.guildOriginal;
+            const { serverId } = req.params;
             const parsedServerId = serverId ? parseInt(serverId) : undefined;
-
-            const guildOriginal: Guild = req.body.guildOriginal;
-            if (parsedServerId && parsedServerId !== guildOriginal.serverId) {
-                console.error('Guild does not belong to this server');
-                res.status(404);
-                return;
-            }
             try {
+                if (!parsedServerId) {
+                    throw new Error('No server provided');
+                }
                 await this.__model.delete(guildOriginal);
                 res.sendStatus(204);
             }

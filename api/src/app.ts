@@ -1,11 +1,10 @@
 import dotenv from "dotenv";
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
+import gracefulShutdown from "http-graceful-shutdown";
 import { ServerRoute } from "./routes/serverroute";
 import { GameRoute } from "./routes/gameroute";
 import { PrismaClient } from "@prisma/client";
-import { GuildRoute } from "./routes/guildroute";
-import gracefulShutdown from "http-graceful-shutdown";
 import { UserRoute } from "./routes/userroute";
 
 dotenv.config();
@@ -21,8 +20,6 @@ const serverRoute = new ServerRoute(prisma).route;
 app.use('/servers', serverRoute);
 const gameRoute = new GameRoute(prisma).route;
 app.use('/games', gameRoute);
-const guildRoute = new GuildRoute(prisma).route;
-app.use('/guilds', guildRoute);
 const userRoute = new UserRoute(prisma).route;
 app.use('/users', userRoute);
 

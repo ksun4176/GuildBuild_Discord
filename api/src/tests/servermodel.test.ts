@@ -8,60 +8,57 @@ describe('ServerModel', () => {
         serverModel = new ServerModel(prismaMock);
     });
     describe('gets servers', () => {
-        test('with filters provided will pass the filters as a condition', async () => {
-            const filters = { active: true };
-            await serverModel.get(filters);
-            expect(prismaMock.server.findMany).toHaveBeenLastCalledWith({ where: filters });
+        test('with args will pass the args on', async () => {
+            const args = { where: { active: true } };
+            await serverModel.findMany(args);
+            expect(prismaMock.server.findMany).toHaveBeenLastCalledWith(args);
+        });
+    });
+    describe('gets one server', () => {
+        test('with args will pass the args on', async () => {
+            const args = { where: { id: 1 } };
+            await serverModel.findOne(args);
+            expect(prismaMock.server.findUniqueOrThrow).toHaveBeenLastCalledWith(args);
         });
     });
     describe('create server', () => {
-        test('with required data will create the server', async () => {
-            const data = { name: "test" };
-            await serverModel.create(data);
-            expect(prismaMock.server.create).toHaveBeenLastCalledWith({ data: data });
-        });
-        test('with missing data', async () => {
-            expect.assertions(1);
-            try {
-                await serverModel.create(undefined as any);
-            }
-            catch (err) {
-                expect(err).toEqual(new Error(messages.missingObject));
-            }
+        test('with data will create the server', async () => {
+            const args = { data: { name: "test" } };
+            await serverModel.create(args);
+            expect(prismaMock.server.create).toHaveBeenLastCalledWith(args);
         });
     });
     describe('update a server', () => {
-        test('that is active without changing the discord ID will update the server', async () => {
-            const data = { 
-                name: "test",
-                discordId: "discordId"
+        test('that is active by changing the name will update the server', async () => {
+            const id = 1;
+            const args = {
+                where: { id: id },
+                data: { name: "new" }
             };
             const original: Server = {
-                id: 1,
+                id: id,
                 name: "original",
                 discordId: "discordId",
                 active: true
             }
-            await serverModel.update(data, original);
-            expect(prismaMock.server.update).toHaveBeenLastCalledWith({ 
-                where: { id: original.id },
-                data: data 
-            });
+            await serverModel.update(args, original);
+            expect(prismaMock.server.update).toHaveBeenLastCalledWith(args);
         });
         test('that is inactive will error out', async () => {
             expect.assertions(1);
-            const data = { 
-                name: "test",
-                discordId: "discordId"
+            const id = 1;
+            const args = {
+                where: { id: id },
+                data: { name: "new" }
             };
             const original: Server = {
-                id: 1,
+                id: id,
                 name: "original",
                 discordId: "discordId",
                 active: false
             }
             try {
-                await serverModel.update(data, original);
+                await serverModel.update(args, original);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.notActive));
@@ -69,18 +66,19 @@ describe('ServerModel', () => {
         });
         test('to overwrite discordId will error out', async () => {
             expect.assertions(1);
-            const data = { 
-                name: "test",
-                discordId: "discordIdNew"
+            const id = 1;
+            const args = {
+                where: { id: id },
+                data: { discordId: "new" }
             };
             const original: Server = {
-                id: 1,
+                id: id,
                 name: "original",
                 discordId: "discordId",
                 active: true
             }
             try {
-                await serverModel.update(data, original);
+                await serverModel.update(args, original);
             }
             catch (err) {
                 expect(err).toEqual(new Error(messages.mismatchDiscordId));

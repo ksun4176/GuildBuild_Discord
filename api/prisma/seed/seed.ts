@@ -18,10 +18,9 @@ const main = async () => {
     await seed.user_role_type([
         {id: 1, name: 'Server Owner'},
         {id: 2, name: 'Administrator'},
-        {id: 3, name: 'Moderator'},
+        {id: 3, name: 'Guild Lead'},
         {id: 4, name: 'Guild Management'},
-        {id: 5, name: 'Recruiter'},
-        {id: 6, name: 'Guild Member'},
+        {id: 5, name: 'Guild Member'},
     ]);
     // Seed the database with the expected games
     await seed.game([
@@ -29,15 +28,29 @@ const main = async () => {
     ]);
     if (!skipTest) {
         // Seed the database with a test server
-        await seed.server([
-            {id: 1, name: 'Gubii Test Server'}
-        ]);
-        // Seed the database with a test guild
-        await seed.guild([
-            {game_id: 1, guild_id: "69", name: "Gubii Test Guild", server_id: 1}
-        ]);
+        await seed.server((x) => x({ min: 3, max: 9 }, (ctx) => ({
+            name: `Gubi Test Server ${ctx.index}`
+        })));
+        // Seed placeholder guilds
+        for (const server of seed.$store.server) {
+            await seed.guild([{
+                game_id: 1, 
+                guild_id: '', 
+                name: 'GameGuildPlaceholder1', 
+                server_id: server.id
+            }]);
+        }
+        // Seed the database with test guilds
+        for (const server of seed.$store.server) {
+            await seed.guild((x) => x({min: 1, max: 3}, (ctx) => ({
+                game_id: 1, 
+                guild_id: `${server.id}${ctx.index}`,
+                name: `Gubii Test Guild ${ctx.index}`, 
+                server_id: server.id
+            })));
+        }
         // Seed the database with users
-        await seed.user((x) => x({ min: 3, max: 10 }, (ctx) => ({
+        await seed.user((x) => x({ min: 20, max: 50 }, (ctx) => ({
             name: `User ${ctx.index}`,
             discord_id: `id${ctx.index}`
         })));

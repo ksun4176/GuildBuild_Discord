@@ -1,87 +1,53 @@
 import { PrismaClient, Prisma, Server } from '@prisma/client'
 import { Model } from './model';
-import { DefaultArgs } from '@prisma/client/runtime/library';
 
 export const messages = {
-    missingObject: 'Missing server object',
     notActive: 'Server has been deleted',
     mismatchDiscordId: 'Trying to overwrite discord ID? Suspicious...'
 }
 
-export class ServerModel extends Model<Prisma.ServerDelegate, Server, Prisma.ServerWhereInput> {
-
-    protected override __delegate: Prisma.ServerDelegate<DefaultArgs>;
+export class ServerModel extends Model<'Server'> {
+    protected override __delegate: Prisma.ServerDelegate;
 
     constructor(prisma: PrismaClient) {
         super(prisma);
         this.__delegate = this.__prisma.server;
     }
 
-    /**
-     * Get servers that match the filters
-     * @param whereArgs the filters
-     * @returns array of servers
-     */
-    public override async get(whereArgs?: Partial<Prisma.ServerWhereInput>): Promise<Server[]> {
-        return await this.__delegate.findMany({
-            where: whereArgs
-        });
+    public override async findMany(args?: Prisma.ServerFindManyArgs) {
+        return await this.__delegate.findMany(args);
     }
 
-    /**
-     * Create a server
-     * @param data server info
-     * @returns created server
-     */
-    public override async create(data: any): Promise<Server> {
-        if (!data) {
-            throw new Error(messages.missingObject);
-        }
-        return await this.__delegate.create({
-            data: this.__getServerData(data)
-        });
+    public override async findOne(args?: Prisma.ServerFindUniqueOrThrowArgs) {
+        return await this.__delegate.findUniqueOrThrow(args);
     }
 
-    /**
-     * Update a server
-     * @param data server info to update to
-     * @param original original info
-     * @returns updated server
-     */
-    public override async update(data: any, original: Server): Promise<Server> {
-        if (!data) {
-            throw new Error(messages.missingObject);
-        }
+    public override async create(args: Prisma.ServerCreateArgs) {
+        args.data = this.__getValidData(args.data);
+        return await this.__delegate.create(args);
+    }
+
+    public override async update(args: Prisma.ServerUpdateArgs, original: Server) {
         if (!original.active) {
             throw new Error(messages.notActive);
         }
-        if (original.discordId && data.discordId && original.discordId !== data.discordId) {
+        const data = args.data;
+        if (original.discordId && data?.discordId && original.discordId !== data.discordId) {
             throw new Error(messages.mismatchDiscordId);
         }
-        return await this.__delegate.update({
-            where: { id: original.id },
-            data: this.__getServerData(data)
-        });
+        args.data = this.__getValidData(data);
+        return await this.__delegate.update(args);
     }
 
-    /**
-     * Delete a server
-     * @param original original info
-     */
-    public async delete(original: Server): Promise<void> {
+    public override async delete(original: Server) {
         await this.__delegate.update({
             where: { id: original.id },
             data: { active: false }
         });
     }
-    
-    /**
-     * Get all valid server properties that we can set when updating/creating
-     * @param data new server info
-     * @returns valid server properties
-     */
-    private __getServerData(data: any) {
-        return { 
+
+    protected override __getValidData(data: any, _original?: Server) {
+        return {
             name: data.name, 
             discordId: data.discordId 
         };
