@@ -1,4 +1,3 @@
-import dotenv from "dotenv";
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import gracefulShutdown from "http-graceful-shutdown";
@@ -7,7 +6,6 @@ import { GameRoute } from "./routes/gameroute";
 import { PrismaClient } from "@prisma/client";
 import { UserRoute } from "./routes/userroute";
 
-dotenv.config();
 const prisma = new PrismaClient();
 
 const app: Express = express();

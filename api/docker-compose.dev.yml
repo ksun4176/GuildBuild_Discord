@@ -1,0 +1,28 @@
+services:
+  guild_build_db:
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    ports:
+      - ${DB_PORT}:3306
+    volumes:
+      - my-db:/var/lib/mysql
+
+  guild_build_api:
+    build:
+      context: .
+      target: build
+    depends_on:
+      - guild_build_db
+    volumes:
+    - ./:/app
+      - /app/node_modules
+    ports:
+      - "${API_PORT}:${API_PORT}"
+    command: npm run dev
+
+# Names our volume
+volumes:
+  my-db:

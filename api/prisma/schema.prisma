@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = env("SQL_URL")
+  url      = env("DB_URL")
 }
 
 // Information about the game the guild is for
@@ -137,3 +137,4 @@ model UserRoleType {
 
   @@map("User_Role_Type")
 }
+//NOTE: I'd like to use enums here but not all connectors support it

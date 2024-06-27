@@ -58,8 +58,8 @@ export class GuildModel extends Model<'Guild'> {
         return {
             gameId: data.gameId,
             guildId: data.guildId,
-            name: data.name, 
-            serverId: data.serverId 
+            name: data.name,
+            serverId: data.serverId
         };
     }
 
@@ -112,4 +112,3 @@ export class GuildModel extends Model<'Guild'> {
         return await this.__delegate.upsert(args);
     }
 }
-

@@ -15,7 +15,7 @@ const main = async () => {
     await seed.$resetDatabase();
 
     // Seed the database with the expected user_role_types
-    await seed.user_role_type([
+    await seed.userRoleType([
         {id: 1, name: 'Server Owner'},
         {id: 2, name: 'Administrator'},
         {id: 3, name: 'Guild Lead'},
@@ -34,25 +34,25 @@ const main = async () => {
         // Seed placeholder guilds
         for (const server of seed.$store.server) {
             await seed.guild([{
-                game_id: 1, 
-                guild_id: '', 
+                gameId: 1, 
+                guildId: '', 
                 name: 'GameGuildPlaceholder1', 
-                server_id: server.id
+                serverId: server.id
             }]);
         }
         // Seed the database with test guilds
         for (const server of seed.$store.server) {
             await seed.guild((x) => x({min: 1, max: 3}, (ctx) => ({
-                game_id: 1, 
-                guild_id: `${server.id}${ctx.index}`,
+                gameId: 1, 
+                guildId: `${server.id}${ctx.index}`,
                 name: `Gubii Test Guild ${ctx.index}`, 
-                server_id: server.id
+                serverId: server.id
             })));
         }
         // Seed the database with users
         await seed.user((x) => x({ min: 20, max: 50 }, (ctx) => ({
             name: `User ${ctx.index}`,
-            discord_id: `id${ctx.index}`
+            discordId: `id${ctx.index}`
         })));
     }
     
