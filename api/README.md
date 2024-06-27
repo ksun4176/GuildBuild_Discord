@@ -8,7 +8,12 @@ Now as to how to contribute:
 1. Clone this repository onto your local machine
 2. Create a new branch
 3. Switch to new branch on your local machine
-4. Duplicate `.env.example` into a file named `.env` and fill in the variables
+4. Duplicate `.env.example` into a file named `.env`
+   - Remove everything not under `# Example .env file` section
+   - Fill in blank variables
+5. Duplicate `.env.example` into a file named `docker.env`
+   - Remove everything not under `# Example docker.env file` section
+   - Fill in blank variables
 5. Run `docker-compose -f docker-compose.dev.yml up -d`
    - This will spin up a docker container for (1) a MySQL database (2) and a development server
 6. (Optional) After you make your first commit, create a merge request to better track your work

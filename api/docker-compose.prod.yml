@@ -1,8 +1,10 @@
 services:
- guild_build_api:
-  build:
-   context: .
-   target: production
-  ports:
-   - "${API_PORT}:${API_PORT}"
-  env_file: .env
+  guild_build_api:
+    build:
+      context: .
+      target: production
+    ports:
+    - "${API_PORT}:${API_PORT}"
+    env_file: 
+      - .env
+      - docker.env

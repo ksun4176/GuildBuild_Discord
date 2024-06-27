@@ -22,7 +22,9 @@ services:
     ports:
       - "${API_PORT}:${API_PORT}"
     command: npm run dev
-
-# Names our volume
+    env_file: 
+      - .env
+      - docker.env
+ 
 volumes:
   my-db:
