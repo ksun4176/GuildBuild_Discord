@@ -18,7 +18,7 @@ export class ServerModel extends Model<'Server'> {
         return await this.__delegate.findMany(args);
     }
 
-    public override async findOne(args?: Prisma.ServerFindUniqueOrThrowArgs) {
+    public override async findOne(args: Prisma.ServerFindUniqueOrThrowArgs) {
         return await this.__delegate.findUniqueOrThrow(args);
     }
 

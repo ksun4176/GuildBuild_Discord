@@ -20,7 +20,7 @@ export class GuildModel extends Model<'Guild'> {
         return await this.__delegate.findMany(args);
     }
 
-    public override async findOne(args?: Prisma.GuildFindUniqueOrThrowArgs) {
+    public override async findOne(args: Prisma.GuildFindUniqueOrThrowArgs) {
         return await this.__delegate.findUniqueOrThrow(args);
     }
 

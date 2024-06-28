@@ -56,7 +56,7 @@ export abstract class Model<N extends ModelName = ModelName> {
      * @param args args to pass on
      * @returns a single entity
      */
-    public abstract findOne(args?: FindUniqueOrThrowArgs<N>): Promise<FindUniqueOrThrowResults<N>>;
+    public abstract findOne(args: FindUniqueOrThrowArgs<N>): Promise<FindUniqueOrThrowResults<N>>;
 
     /**
      * Create an entity

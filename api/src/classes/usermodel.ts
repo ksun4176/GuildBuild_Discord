@@ -19,7 +19,7 @@ export class UserModel extends Model<'User'> {
         return await this.__delegate.findMany(args);
     }
 
-    public override async findOne(args?: Prisma.UserFindUniqueOrThrowArgs) {
+    public override async findOne(args: Prisma.UserFindUniqueOrThrowArgs) {
         return await this.__delegate.findUniqueOrThrow(args);
     }
 

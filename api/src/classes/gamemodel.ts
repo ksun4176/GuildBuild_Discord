@@ -13,7 +13,7 @@ export class GameModel extends Model<'Game'> {
         return await this.__delegate.findMany(args);
     }
 
-    public override async findOne(args?: Prisma.GameFindUniqueOrThrowArgs) {
+    public override async findOne(args: Prisma.GameFindUniqueOrThrowArgs) {
         return await this.__delegate.findUniqueOrThrow(args)
     }
 

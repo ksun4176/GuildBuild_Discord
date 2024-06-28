@@ -1,10 +1,12 @@
-#Dependencies
-FROM node:18-alpine AS dependencies
+#Pre build stage to install dependencies
+FROM node:18-alpine AS pre-build
 
 WORKDIR /app
 COPY package*.json ./
-
+COPY prisma ./prisma
 RUN npm install
+
+COPY . .
 
 #Build stage
 FROM node:18-alpine AS build
@@ -13,7 +15,6 @@ WORKDIR /app
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 
-RUN npx prisma generate
 RUN npm run build
 
 #Production stage
