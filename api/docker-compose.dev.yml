@@ -12,7 +12,7 @@ services:
       - my-db:/var/lib/mysql
 
   api:
-    container_name: guild_build_api
+    container_name: guild_build_api_dev
     build:
       context: .
       target: pre-build

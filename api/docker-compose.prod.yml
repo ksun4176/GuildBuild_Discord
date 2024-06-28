@@ -1,10 +1,9 @@
 services:
-  guild_build_api:
+  api:
+    container_name: guild_build_api_prod
     build:
       context: .
       target: production
     ports:
     - "${API_PORT}:${API_PORT}"
-    env_file: 
-      - .env
-      - docker.env
+    env_file: .env

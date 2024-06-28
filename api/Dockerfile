@@ -12,7 +12,7 @@ COPY . .
 FROM node:18-alpine AS build
 
 WORKDIR /app
-COPY --from=dependencies /app/node_modules ./node_modules
+COPY --from=pre-build /app/node_modules ./node_modules
 COPY . .
 
 RUN npm run build
