@@ -14,46 +14,59 @@ const main = async () => {
     // Truncate all tables in the database
     await seed.$resetDatabase();
 
-    // Seed the database with the expected user_role_types
-    await seed.userRoleType([
-        {id: 1, name: 'Server Owner'},
-        {id: 2, name: 'Administrator'},
-        {id: 3, name: 'Guild Lead'},
-        {id: 4, name: 'Guild Management'},
-        {id: 5, name: 'Guild Member'},
-    ]);
-    // Seed the database with the expected games
-    await seed.game([
-        {id: 1, name: 'AFK Arena'}
-    ]);
+    // Seed the database with user_role_types
+    const roleTypes = [
+        'Server Owner',
+        'Administrator',
+        'Guild Lead',
+        'Guild Management',
+        'Guild Member',
+    ]
+    await seed.userRoleType(roleTypes.map((type, index) => { return { id: index+1, name: type } }));
+    // Seed the database with games
+    const games = [
+        'AFK Arena'
+    ]
+    await seed.game(games.map((game, index) => { return { id: index+1, name: game } }));
+
     if (!skipTest) {
-        // Seed the database with a test server
-        await seed.server((x) => x({ min: 3, max: 9 }, (ctx) => ({
-            name: `Gubi Test Server ${ctx.index}`
+        // Seed the database with users
+        await seed.user((x) => x({ min: 20, max: 50 }, (ctx) => ({
+            name: `User ${ctx.index+1}`,
+            discordId: `id${ctx.index+1}`
         })));
-        // Seed placeholder guilds
+        // Seed the database with servers
+        await seed.server((x) => x({ min: 3, max: 9 }, (ctx) => ({
+            name: `Gubi Test Server ${ctx.index+1}`
+        })));
         for (const server of seed.$store.server) {
+            // Seed the database with server owner roles
+            await seed.userRole([{
+                id: server.id,
+                name: `${server.name} Owner`,
+                roleType: 1,
+                serverId: server.id
+            }]);
+            // Seed the database with links between user + roles
+            await seed.userRelation([{
+                userId: server.id,
+                roleId: server.id,
+            }]);
+            // Seed placeholder guilds
             await seed.guild([{
-                gameId: 1, 
+                gameId: Math.floor(Math.random() * games.length + 1),
                 guildId: '', 
                 name: 'GameGuildPlaceholder1', 
                 serverId: server.id
             }]);
-        }
-        // Seed the database with test guilds
-        for (const server of seed.$store.server) {
+            // Seed the database with test guilds
             await seed.guild((x) => x({min: 1, max: 3}, (ctx) => ({
-                gameId: 1, 
-                guildId: `${server.id}${ctx.index}`,
-                name: `Gubii Test Guild ${ctx.index}`, 
+                gameId: Math.floor(Math.random() * games.length + 1),
+                guildId: `${server.id}${ctx.index+1}`,
+                name: `Gubii Test Guild ${ctx.index+1}`, 
                 serverId: server.id
             })));
         }
-        // Seed the database with users
-        await seed.user((x) => x({ min: 20, max: 50 }, (ctx) => ({
-            name: `User ${ctx.index}`,
-            discordId: `id${ctx.index}`
-        })));
     }
     
     console.log("Database seeded successfully!");

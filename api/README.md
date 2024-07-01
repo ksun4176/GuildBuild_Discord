@@ -99,6 +99,60 @@ Body:
   }
 }
 ```
+## /games
+### Resource
+```
+```
+### **POST**: /games
+Add a new game to the system
+Request Body:
+```
+game: {
+  name (string): name of game
+}
+```
+Example Request:
+```
+curl -v -X POST \
+  -H "Content-Type: application/json" \
+  -d '{ "game": { "name": "example_game" } }' \
+  http://localhost:9000/games
+```
+Example Response:
+```
+Status: 201 Created
+Body:
+{
+  id: 991,
+  name: "example_game"
+}
+```
+### **POST**: servers/{serverId}/games/{gameId}
+Add a game to a server
+Path Parameters:
+```
+serverId (number): server to add game to
+gameId (number): game to add to server
+```
+Example Request:
+```
+curl -v -X POST \
+  -H "Content-Type: application/json" \
+  http://localhost:9000/servers/345/games/991
+```
+Example Response:
+```
+Status: 201 Created
+Body:
+{
+  id: 235,
+  gameId: 991,
+  serverId: 345,
+  guildId: '',
+  name: 'GameGuildPlaceholder991',
+  active: true
+}
+```
 
 ### APIs:
 /games
@@ -106,17 +160,14 @@ Body:
   - name: name of game
 - /games
   - GET: Retrieve all games
-  - POST: Add a new game
 - /games/{gameId}
   - GET: Retrieve one game
-  - PUT: Update the game (must be given context from a parent route)
 /servers
 - Data structure:
   - name: name of server
   - discordId: ID of Discord server
 - /servers
   - GET: Retrieve all active servers
-  - POST: Add a new server
 - /servers/{serverId}
   - GET: Retrieve one server
   - PUT: Update the server

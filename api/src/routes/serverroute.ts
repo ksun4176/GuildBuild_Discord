@@ -114,6 +114,7 @@ export class ServerRoute extends Route {
     /**
      * Create a server and assign the server owner roles
      * @param reqBody The body from the POST request
+     * @returns the created server and linked owner
      */
     private async __createServer(reqBody: any): Promise<Server & { owner: User }> {
         // check if required properties are set

@@ -1,4 +1,4 @@
-import { Game, Prisma, PrismaClient } from '@prisma/client'
+import { Game, Guild, Prisma, PrismaClient } from '@prisma/client'
 import { GameModel } from "../classes/gamemodel";
 import { RouteParameters } from 'express-serve-static-core';
 import { Route } from "./route";
@@ -7,14 +7,18 @@ import { RouterOptions } from 'express';
 
 type Params<T extends string> = Partial<RouteParameters<':serverId'>> & RouteParameters<T>;
 
-export class GameRoute extends Route {
-    protected __model: GameModel;
+export const messages = {
+    gameIncomplete: 'The game object is missing properties',
+    missingServer: 'Missing serverId',
+}
 
+export class GameRoute extends Route {
+    private __gameModel: GameModel;
     private __guildModel: GuildModel;
 
     constructor(prisma: PrismaClient, routerOptions?: RouterOptions) {
         super(prisma, routerOptions);
-        this.__model = new GameModel(prisma);
+        this.__gameModel = new GameModel(prisma);
         this.__guildModel = new GuildModel(prisma);
     }
 
@@ -23,7 +27,7 @@ export class GameRoute extends Route {
         this.route.get(rootRoute, async (_req, res, _next) => {
             // get all games
             try {
-                const games = await this.__model.findMany();
+                const games = await this.__gameModel.findMany();
                 res.status(200).json({games: games});
             }
             catch (err) {
@@ -33,11 +37,9 @@ export class GameRoute extends Route {
         });
 
         this.route.post(rootRoute, async (req, res, _next) => {
-            // add a new game
-            const game = req.body.game;
             try {
-                const gameResult = await this.__model.create({ data: game });
-                res.status(201).json({game: gameResult});
+                const result = await this.__createGame(req.body);
+                res.status(201).json(result);
             }
             catch (err) {
                 console.error(err);
@@ -49,7 +51,7 @@ export class GameRoute extends Route {
             try {
                 const parsedGameId = parseInt(gameId);
                 const args: Prisma.GameFindUniqueOrThrowArgs = { where: { id: parsedGameId } };
-                const game = await this.__model.findOne(args);
+                const game = await this.__gameModel.findOne(args);
                 req.body.gameOriginal = game;
                 next();
             }
@@ -88,27 +90,51 @@ export class GameRoute extends Route {
             }
         });
 
-        this.route.put<typeof paramRoute,Params<typeof paramRoute>>(paramRoute, async (req, res, _next) => {
-            // add a game to the server
-            let gameOriginal: Game = req.body.gameOriginal;
-            
+        this.route.post<typeof paramRoute,Params<typeof paramRoute>>(paramRoute, async (req, res, _next) => {
             const { serverId } = req.params;
             const parsedServerId = serverId ? parseInt(serverId) : undefined;
             try {
                 if (!parsedServerId) {
-                    throw new Error('Missing server object');
+                    throw new Error(messages.missingServer);
                 }
-                this.__guildModel.createPlaceholderGuild(gameOriginal.id, parsedServerId);
-                res.status(202).json({game: gameOriginal});
+                const result = await this.__addGameToServer(req.body, parsedServerId);
+                res.status(201).json(result);
             }
             catch (err) {
                 console.error(err);
                 res.sendStatus(400);
             }
         });
+    }
 
-        
+    /**
+     * Create a game
+     * @param reqBody The body from the POST request
+     * @returns the created game
+    */
+    private async __createGame(reqBody: any): Promise<Game> {
+        // check if required properties are set
+        const game = reqBody.game;
+        if (!game || !game.name) {
+            throw new Error(messages.gameIncomplete);
+        }
+        const gameResult = await this.__gameModel.create({ data: game });
+        return gameResult;
+    }
 
+    /**
+     * Add a game to a server to be handled
+     * @param reqBody The body from the POST request
+     * @param serverId the server to add game to
+     * @returns the created placeholder guild
+     */
+    private async __addGameToServer(reqBody: any, serverId: number): Promise<Guild> {
+        // add a game to the server
+        const gameOriginal: Game = reqBody.gameOriginal;
+        if (!gameOriginal) {
+            throw new Error(messages.gameIncomplete);
+        }
+        return await this.__guildModel.createPlaceholderGuild(gameOriginal.id, serverId);
     }
 }
 
