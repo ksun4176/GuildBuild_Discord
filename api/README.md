@@ -9,31 +9,29 @@ Now as to how to contribute:
 2. Create a new branch
 3. Switch to new branch on your local machine
 4. Duplicate `.env.example` into a file named `.env`
-   - Remove everything not under `# Example .env file` section
-   - Fill in blank variables
-5. Duplicate `.env.example` into a file named `docker.env`
-   - Remove everything not under `# Example docker.env file` section
    - Fill in blank variables
 5. Run `docker-compose -f docker-compose.dev.yml up -d`
    - This will spin up a docker container for (1) a MySQL database (2) and a development server
-6. (Optional) After you make your first commit, create a merge request to better track your work
+6. We now need to populate your test database
+   1. Run `npm install`
+   2. Go into your `.env` and swap which `DB_URL` is commented out
+      - The way your local machine access the database and a docker container in the same network access it is different.
+   2. Update your database schema using `npm run migrate`
+   3. If your database does not have any data, also run `npx prisma db seed`
+7. (Optional) After you make your first commit, create a merge request to better track your work
 
-To populate a test database:
-1. Install dependencies using `npm install`
-2. Get the most up to date database schema using `npm run migrate`. This will also seed test data for you to play around with
-4. If you need to update the schema, follow the next steps:
-5. Make changes in prisma/schema.prisma
-6. Create a new migration using `npm run migrate -- --name <name your migration>`
-7. If you need to update seed data, do so in `prisma/seed/seed.ts`
-8. If you only updated seed data (and not the schema) you can stip steps 4-6 and just test your new seed using `npx prisma db seed`
+To update the database schema:
+1. Make changes in prisma/schema.prisma
+2. If you need to update seed data, do so in `prisma/seed/seed.ts`
+3. Create a new migration using `npm run migrate -- --name <name your migration>`
 
-To make changes to the server, run these commands in terminal:
-1. Make the changes in whichever file
+To make changes to the server:
+1. Make changes in whichever file
 2. Rebuild container using `docker-compose -f docker-compose.dev.yml up -d --build`
 3. Access your server and verify changes
 
-Once you are done with your changes, run these commands in terminal:
-1. Test that it would work in production using `docker-compose -f docker-compose.prod.yml up -d`
+To verify this would work in production:
+1. Rebuild container using `docker-compose -f docker-compose.prod.yml up -d --build`
 2. Access your server and verify changes
 
 ## Technical Details
@@ -41,8 +39,66 @@ The server is created using Docker, Node.js, and MySQL.
 Some noteable node packages are Express and Prisma.
 The languages we are using are TypeScript, ...
 
-How to send a request using cURL:
-`curl -v -H "Content-Type: application/json" -X POST -d "{ \"server\": { \"name\":\"kaitest\" } }" http://localhost:9000/servers`
+## /servers
+### Resource
+```
+```
+### **GET**: /servers
+Get a list of all servers
+Path Parameters:
+```
+```
+Query Parameters:
+```
+- gameId
+```
+Request Body:
+```
+```
+Example Request:
+```
+```
+Example Response:
+```
+```
+### **POST**: /servers
+Add a new server
+Request Body:
+```
+server: {
+  name (string): name of server
+  discordId (string?): ID of linked discord server
+  owner (user): person who created the server
+  {
+    id (number?): ID of owner if already in database.
+    discordId (number?): If id is not provided, this will be used to look up user to assign as owner
+  }
+}
+```
+Example Request:
+```
+curl -v -X POST \
+  -H "Content-Type: application/json" \
+  -d '{ "server": { "name": "example_server", "discordId": "example_server_id", "owner": { "id": 345 } } }' \
+  http://localhost:9000/servers
+```
+Example Response:
+```
+Status: 201 Created
+Body:
+{
+  id: 991,
+  name: "example_server",
+  discordId: "example_server_id",
+  active: true
+  owner: {
+    id: 345,
+    name: "server_owner_1",
+    discordId: "example_owner_id_1",
+    active: true
+  }
+}
+```
 
 ### APIs:
 /games

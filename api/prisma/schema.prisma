@@ -137,4 +137,3 @@ model UserRoleType {
 
   @@map("User_Role_Type")
 }
-//NOTE: I'd like to use enums here but not all connectors support it

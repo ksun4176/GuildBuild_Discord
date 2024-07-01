@@ -19,7 +19,7 @@ export class GameModel extends Model<'Game'> {
 
     public override async create(args: Prisma.GameCreateArgs) {
         args.data = this.__getValidData(args.data);
-        return await this.__delegate.create( args);
+        return await this.__delegate.create(args);
     }
     
     public override update(_args: Prisma.GameUpdateArgs, _original: Game): Promise<Game> {

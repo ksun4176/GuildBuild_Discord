@@ -3,7 +3,7 @@ import { Prisma, PrismaClient, User } from '@prisma/client'
 import { UserModel } from "../classes/usermodel";
 import { Route } from "./route";
 
-export class UserRoute extends Route<UserModel> {
+export class UserRoute extends Route {
     protected __model: UserModel;
 
     constructor(prisma: PrismaClient, routerOptions?: RouterOptions) {

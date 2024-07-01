@@ -7,7 +7,7 @@ import { RouterOptions } from 'express';
 
 type Params<T extends string> = Partial<RouteParameters<':serverId'>> & RouteParameters<T>;
 
-export class GameRoute extends Route<GameModel> {
+export class GameRoute extends Route {
     protected __model: GameModel;
 
     private __guildModel: GuildModel;

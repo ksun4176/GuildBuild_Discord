@@ -1,21 +1,15 @@
 import { PrismaClient } from "@prisma/client";
-import { Model } from "../classes/model";
 import { Router, RouterOptions } from "express";
 import prisma from "../tests/prismaclient";
 
 /**
  * Abstract class for an API route
  */
-export abstract class Route<A extends Model> {
+export abstract class Route {
     /**
      * The prisma client that connects to the database
      */ 
-    protected __prisma: PrismaClient;
-
-    /**
-     * Model to talk to database
-     */
-    protected abstract __model: A;
+    protected __prisma: PrismaClient;    
 
     /** The router */
     private __route: Router;

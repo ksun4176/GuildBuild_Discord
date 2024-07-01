@@ -2,7 +2,6 @@ services:
   db:
     container_name: guild_build_db
     image: mysql:latest
-    restart: always
     environment:
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}

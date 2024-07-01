@@ -6,7 +6,7 @@ import { Route } from "./route";
 
 type Params<T extends string> = Partial<RouteParameters<':serverId'>> & RouteParameters<T>;
 
-export class GuildRoute extends Route<GuildModel> {
+export class GuildRoute extends Route {
     protected __model: GuildModel;
 
     constructor(prisma: PrismaClient, routerOptions?: RouterOptions) {
