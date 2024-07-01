@@ -38,7 +38,7 @@ export class GameRoute extends Route {
 
         this.route.post(rootRoute, async (req, res, _next) => {
             try {
-                const result = await this.__createGame(req.body);
+                const result = await this.__createGame(req.body.game);
                 res.status(201).json(result);
             }
             catch (err) {
@@ -109,12 +109,11 @@ export class GameRoute extends Route {
 
     /**
      * Create a game
-     * @param reqBody The body from the POST request
+     * @param game The game property from the body of the POST request
      * @returns the created game
     */
-    private async __createGame(reqBody: any): Promise<Game> {
+    private async __createGame(game: any): Promise<Game> {
         // check if required properties are set
-        const game = reqBody.game;
         if (!game || !game.name) {
             throw new Error(messages.gameIncomplete);
         }

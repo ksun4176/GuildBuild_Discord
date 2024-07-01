@@ -3,12 +3,16 @@ import { Prisma, PrismaClient, User } from '@prisma/client'
 import { UserModel } from "../classes/usermodel";
 import { Route } from "./route";
 
+export const messages = {
+    userIncomplete: 'The user object is missing properties',
+}
+
 export class UserRoute extends Route {
-    protected __model: UserModel;
+    protected __userModel: UserModel;
 
     constructor(prisma: PrismaClient, routerOptions?: RouterOptions) {
         super(prisma, routerOptions);
-        this.__model = new UserModel(prisma);
+        this.__userModel = new UserModel(prisma);
     }
 
     protected override __setUpRoute() {
@@ -19,7 +23,7 @@ export class UserRoute extends Route {
             // const gameId = req.query.gameId;
             // const guildId = req.query.guildId;
             try {
-                const users = await this.__model.findMany({
+                const users = await this.__userModel.findMany({
                     where: { active: true }
                 });
                 res.status(200).json({users: users});
@@ -31,10 +35,9 @@ export class UserRoute extends Route {
         });
 
         this.route.post(rootRoute, async (req, res, _next) => {
-            const user = req.body.user;
             try {
-                const userResult = await this.__model.create({ data: user });
-                res.status(201).json({user: userResult});
+                const result = await this.__createUser(req.body.user);
+                res.status(201).json(result);
             }
             catch (err) {
                 console.error(err);
@@ -53,7 +56,7 @@ export class UserRoute extends Route {
                 }
             };
             try {
-                const users = await this.__model.findOne(args);
+                const users = await this.__userModel.findOne(args);
                 req.body.userOriginal = users;
                 next();
             }
@@ -85,7 +88,7 @@ export class UserRoute extends Route {
                     where: { id: userOriginal.id },
                     data: user
                 }
-                const userResult = await this.__model.update(args, userOriginal);
+                const userResult = await this.__userModel.update(args, userOriginal);
                 res.status(202).json({user: userResult});
             }
             catch (err) {
@@ -97,7 +100,7 @@ export class UserRoute extends Route {
         this.route.delete(paramRoute, async (req, res, _next) => {
             const userOriginal: User = req.body.userOriginal;
             try {
-                await this.__model.delete(userOriginal);
+                await this.__userModel.delete(userOriginal);
                 res.sendStatus(204);
             }
             catch (err) {
@@ -105,6 +108,20 @@ export class UserRoute extends Route {
                 res.sendStatus(500);
             }
         });
+    }
+
+    /**
+     * Create a user
+     * @param user The user property from the body of the POST request
+     * @returns the created user
+    */
+    private async __createUser(user: any): Promise<User> {
+        // check if required properties are set
+        if (!user || !user.name) {
+            throw new Error(messages.userIncomplete);
+        }
+        const userResult = await this.__userModel.create({ data: user });
+        return userResult;
     }
 }
 

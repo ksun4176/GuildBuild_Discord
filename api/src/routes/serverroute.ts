@@ -41,7 +41,7 @@ export class ServerRoute extends Route {
 
         this.route.post(rootRoute, async (req, res, _next) => {
             try {
-                const result = await this.__createServer(req.body);
+                const result = await this.__createServer(req.body.server);
                 res.status(201).json(result);
             }
             catch (err) {
@@ -113,12 +113,11 @@ export class ServerRoute extends Route {
 
     /**
      * Create a server and assign the server owner roles
-     * @param reqBody The body from the POST request
+     * @param server The server property from the body of the POST request
      * @returns the created server and linked owner
      */
-    private async __createServer(reqBody: any): Promise<Server & { owner: User }> {
+    private async __createServer(server: any): Promise<Server & { owner: User }> {
         // check if required properties are set
-        const server = reqBody.server;
         if (!server || !server.name || !server.owner) {
             throw new Error(messages.serverIncomplete);
         }

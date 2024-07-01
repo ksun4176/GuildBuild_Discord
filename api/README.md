@@ -103,9 +103,6 @@ Body:
 }
 ```
 ## /games
-### Resource
-```
-```
 ### **POST**: /games `Add a new game to the system`
 Request Body:
 ```
@@ -155,9 +152,6 @@ Body:
 }
 ```
 ## /guilds
-### Resource
-```
-```
 ### **POST**: /servers/{serverId}/guilds `Add a guild to a server`
 Path Parameters:
 ```
@@ -206,6 +200,33 @@ Body:
   active: true
 }
 ```
+## /users
+### **POST**: /users `Add a user`
+Request Body:
+```
+user: {
+  name (string): name of user
+  discordId (string?): ID of linked discord user
+}
+```
+Example Request:
+```
+curl -v -X POST \
+  -H "Content-Type: application/json" \
+  -d '{ "user": { "name": "example_user", "discordId": "example_user_id" } }' \
+  http://localhost:9000/users
+```
+Example Response:
+```
+Status: 201 Created
+Body: 
+{
+  id: 463,
+  name: 'example_user',
+  discordId: 'example_user_id',
+  active: true
+}
+```
 
 ### APIs:
 /games
@@ -244,7 +265,6 @@ Body:
   - discordId: Discord user ID
 - /users?serverId={serverId}&gameId={gameId}&guildId={guildId}
   - GET: Retrieve all users
-  - POST: Add a new user
 - /users/{userId}
   - GET: Retrieve one user
   - PUT: Update the user

@@ -149,7 +149,7 @@ export class GuildRoute extends Route {
 
     /**
      * Create a guild and assign the lead + management roles
-     * @param guild The guild from the body of the POST request
+     * @param guild The guild property from the body of the POST request
      * @returns the created server and linked owner
      */
     private async __createGuild(guild: any): Promise<Guild> {
