@@ -75,12 +75,22 @@ export class GuildModel extends Model<'Guild'> {
     }
     
     /**
-     * Get whether a guild is a placeholder guild that signals a server supports a game
-     * @param guild The guild to check
-     * @returns True if is placeholder, false otherwise
+     * Get whether a placeholder guild exists for a server + game.
+     * This signals that a server supports a game
+     * @param serverId The server to check
+     * @param gameId The game to check
+     * @returns True if a placeholder guild exists, false otherwise.
      */
-    public static isPlaceholderGuild(guild: Guild) {
-        return guild.guildId === '';
+    public async hasPlaceholderGuild(serverId: number, gameId: number): Promise<boolean> {
+        let existingGuildsArgs: Prisma.GuildFindManyArgs = {
+            where: { 
+                serverId: serverId,
+                gameId: gameId
+            }
+        }
+        existingGuildsArgs.where = GuildModel.addPlaceholderCriteria(existingGuildsArgs.where!);
+        const existingGuilds = await this.findMany(existingGuildsArgs);
+        return existingGuilds.length > 0;
     }
 
     /**

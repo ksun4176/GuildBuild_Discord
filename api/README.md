@@ -43,8 +43,7 @@ The languages we are using are TypeScript, ...
 ### Resource
 ```
 ```
-### **GET**: /servers
-Get a list of all servers
+### **GET**: /servers `Get a list of all servers`
 Path Parameters:
 ```
 ```
@@ -61,25 +60,29 @@ Example Request:
 Example Response:
 ```
 ```
-### **POST**: /servers
-Add a new server
+### **POST**: /servers `Add a new server`
 Request Body:
 ```
 server: {
-  name (string): name of server
-  discordId (string?): ID of linked discord server
+  name (string): name of server,
+  discordId (string?): ID of linked discord server,
   owner (user): person who created the server
   {
-    id (number?): ID of owner if already in database.
-    discordId (number?): If id is not provided, this will be used to look up user to assign as owner
-  }
+    id (number?): ID of owner if already in database,
+    discordId (number?): If id is blank, look up user using this
+  },
+  ownerRole (userrole?):
+  {
+    name (string?): name of role
+    discordId (string?): ID of linked discord role
+  },
 }
 ```
 Example Request:
 ```
 curl -v -X POST \
   -H "Content-Type: application/json" \
-  -d '{ "server": { "name": "example_server", "discordId": "example_server_id", "owner": { "id": 345 } } }' \
+  -d '{ "server": { "name": "example_server", "discordId": "example_server_id", "owner": { "id": 345 }, "ownerRole": { "name": "Supreme Owner", "discordId": "supreme_owner_id" } } }' \
   http://localhost:9000/servers
 ```
 Example Response:
@@ -90,7 +93,7 @@ Body:
   id: 991,
   name: "example_server",
   discordId: "example_server_id",
-  active: true
+  active: true,
   owner: {
     id: 345,
     name: "server_owner_1",
@@ -103,8 +106,7 @@ Body:
 ### Resource
 ```
 ```
-### **POST**: /games
-Add a new game to the system
+### **POST**: /games `Add a new game to the system`
 Request Body:
 ```
 game: {
@@ -127,8 +129,7 @@ Body:
   name: "example_game"
 }
 ```
-### **POST**: servers/{serverId}/games/{gameId}
-Add a game to a server
+### **POST**: servers/{serverId}/games/{gameId} `Add a game to a server`
 Path Parameters:
 ```
 serverId (number): server to add game to
@@ -150,6 +151,58 @@ Body:
   serverId: 345,
   guildId: '',
   name: 'GameGuildPlaceholder991',
+  active: true
+}
+```
+## /guilds
+### Resource
+```
+```
+### **POST**: /servers/{serverId}/guilds `Add a guild to a server`
+Path Parameters:
+```
+serverId (number): server to add game to
+```
+Request Body:
+```
+guild: {
+  gameId (number): game this guild belongs to,
+  guildId (string): unique ID of guild in game,
+  name (string): name of guild,
+  leadRole (userrole?): details to add to lead role
+  {
+    name (string?): name of role
+    discordId (string?): ID of linked discord role
+  },
+  managementRole (userrole?):
+  {
+    name (string?): name of role
+    discordId (string?): ID of linked discord role
+  },
+  memberRole (userrole?):
+  {
+    name (string?): name of role
+    discordId (string?): ID of linked discord role
+  },
+}
+```
+Example Request:
+```
+curl -v -X POST \
+  -H "Content-Type: application/json" \
+  -d '{ "guild": { "name": "example_guild", "gameId": 991, "guildId": "436234", "leadRole": { "name": "Guild Lead", "discordId": "lead_id" }, "managementRole": { "name": "Guild Management", "discordId": "management_id" }, "memberRole": { "name": "Guild Member", "discordId": "member_id" } } }' \
+  http://localhost:9000/servers/345/guilds
+```
+Example Response:
+```
+Status: 201 Created
+Body:
+{
+  id: 634,
+  gameId: 991,
+  serverId: 345,
+  guildId: '436234',
+  name: 'example_guild',
   active: true
 }
 ```
@@ -181,7 +234,6 @@ Body:
     - name: name of guild
   - /servers/{serverId}/guilds?gameId={gameId}
     - GET: Retrieve all active guilds
-    - POST: Add a new guild
   - /servers/{serverId}/guilds/{guildId}
     - GET: Retrieve one guild
     - PUT: Update the guild

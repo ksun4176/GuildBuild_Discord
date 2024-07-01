@@ -1,4 +1,4 @@
-import { PrismaClient, Server, User } from '@prisma/client'
+import { PrismaClient, Server, User, UserRole } from '@prisma/client'
 import { ServerModel } from "../classes/servermodel";
 import { GuildRoute } from "./guildroute";
 import { GameRoute } from "./gameroute";
@@ -9,7 +9,7 @@ import { UserRelationModel } from '../classes/userrelationmodel';
 
 export const messages = {
     serverIncomplete: 'The server object is missing properties',
-    userNotFound: 'The user does not exist'
+    userNotFound: 'Unique user not found. Can be caused by mismatched id/discordId',
 }
 
 export class ServerRoute extends Route {
@@ -125,7 +125,7 @@ export class ServerRoute extends Route {
 
         // verify that owner is valid user
         const ownerInfo = server.owner;
-        const usersResult = await this.__userModel.findMany({ where: {
+        const ownerResult = await this.__userModel.findMany({ where: {
             OR: [
                 {
                     id: ownerInfo.id
@@ -135,27 +135,23 @@ export class ServerRoute extends Route {
                 }
             ]
         }});
-        if (usersResult.length < 1) {
+        if (ownerResult.length !== 1) {
             throw new Error(messages.userNotFound);
         }
 
-        // create the server -> server owner role -> link the owner + role
+        // create the server -> server owner role -> link owner + role
         const serverResult = await this.__serverModel.create({ data: server });
-        const ownerRoleResult = await this.__userRoleModel.create({ data: {
-            name: `${serverResult.name} Owner`,
-            roleType: RoleType.ServerOwner,
-            serverId: serverResult.id
-        }});
-        let user = usersResult[0];
-        if (user.id !== ownerInfo.id && usersResult.length > 1) {
-            user = usersResult[1];
-        }
+        const ownerRole: UserRole = server.ownerRole ?? {};
+        ownerRole.name = ownerRole.name ?? `${serverResult.name} Owner`;
+        ownerRole.roleType = RoleType.ServerOwner;
+        ownerRole.serverId = serverResult.id;
+        const ownerRoleResult = await this.__userRoleModel.create({ data: ownerRole});
         await this.__userRelationModel.create({ data: {
-            userId: user.id,
+            userId: ownerResult[0].id,
             roleId: ownerRoleResult.id
         }});
 
-        return {...serverResult, owner: user};
+        return {...serverResult, owner: ownerResult[0]};
     }
 }
 

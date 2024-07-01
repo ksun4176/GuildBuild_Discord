@@ -143,5 +143,5 @@ describe('GuildModel', () => {
         });
     });
 
-    // TODO write unit tests for isPlaceholderGuild, createPlaceholderGuild
+    // TODO write unit tests for createPlaceholderGuild
 });

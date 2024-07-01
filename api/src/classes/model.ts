@@ -46,33 +46,33 @@ export abstract class Model<N extends ModelName = ModelName> {
 
     /**
      * Get entities that match the filters
-     * @param args args to pass on
+     * @param args args to filter results
      * @returns array of entities
      */
     public abstract findMany(args?: FindManyArgs<N>): Promise<FindManyResults<N>>;
 
     /**
      * Get the entity that match the filters
-     * @param args args to pass on
+     * @param args args to filter results
      * @returns a single entity
      */
     public abstract findOne(args: FindUniqueOrThrowArgs<N>): Promise<FindUniqueOrThrowResults<N>>;
 
     /**
      * Create an entity
-     * @param data entity info
+     * @param args args to create entity
      * @returns created entity
      */
     public abstract create(args: CreateArgs<N>): Promise<CreateResults<N>>;
 
     /**
      * Update an entity
-     * @param data entity info to update to
+     * @param args args to update entity
      * @param original original info
      * @returns updated entity
      */
     public abstract update(args: UpdateArgs<N>, original: PrismalModel<N>): Promise<UpdateResults<N>>;
-    
+
     /**
      * Delete an entity
      * @param entity entity to delete
@@ -85,6 +85,7 @@ export abstract class Model<N extends ModelName = ModelName> {
      * E.g.: id, active
      * @param data data to check for validity
      * @param original original data if this is an update
+     * @returns the filtered data
      */
     protected abstract __getValidData(data: any, original?: PrismalModel<N>): Partial<PrismalModel<N>>;
 }
