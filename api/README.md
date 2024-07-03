@@ -103,6 +103,70 @@ Body:
 }
 ```
 ## /games
+### Resource
+```
+id (number): Unique identifier for game
+name (string): Name of game
+guilds (number[]): A list of all guilds that are for a game in a server. Only passed back when a serverId is passed in.
+```
+### **GET**: /servers/{serverId}/games `Get a list of all games`
+Path Parameters:
+```
+serverId (number?): server to find related games
+```
+Example Request:
+```
+curl -v -X GET \
+  -H "Content-Type: application/json" \
+  http://localhost:9000/games
+  
+curl -v -X GET \
+  -H "Content-Type: application/json" \
+  http://localhost:9000/servers/991/games
+```
+Example Response:
+```
+Status: 200 OK
+Body: 
+{
+  [
+    {
+      id: 123,
+      name: "example_game_1"
+    },
+    {
+      id: 234,
+      name: "example_game_2"
+    }
+  ]  
+}
+```
+### **GET**: /servers/{serverId}/games/{gameId} `Get details on a single game`
+Path Parameters:
+```
+serverId (number?): server to check whether the game is supported on it
+gameId (number): game to get details on. 
+```
+Example Request:
+```
+curl -v -X GET \
+  -H "Content-Type: application/json" \
+  http://localhost:9000/games/123
+
+curl -v -X GET \
+  -H "Content-Type: application/json" \
+  http://localhost:9000/servers/991/games/123
+```
+Example Response:
+```
+Status: 200 OK
+Body: 
+{
+  id: 123,
+  name: "example_game_1",
+  guilds: [343,345,644]
+}
+```
 ### **POST**: /games `Add a new game to the system`
 Request Body:
 ```
@@ -229,13 +293,6 @@ Body:
 ```
 
 ### APIs:
-/games
-- Data structure:
-  - name: name of game
-- /games
-  - GET: Retrieve all games
-- /games/{gameId}
-  - GET: Retrieve one game
 /servers
 - Data structure:
   - name: name of server
@@ -246,8 +303,6 @@ Body:
   - GET: Retrieve one server
   - PUT: Update the server
   - DELETE: Deactivate the server
-- /servers/{serverId}/games
-  - links up to the /games route with some serverId checking
 - /servers/{serverId}/guilds
   - Data structure:
     - gameId: ID of game this guild is for

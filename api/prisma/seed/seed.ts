@@ -33,11 +33,12 @@ const main = async () => {
         // Seed users
         await seed.user((x) => x({ min: 20, max: 50 }, (ctx) => ({
             name: `User ${ctx.index+1}`,
-            discordId: `id${ctx.index+1}`
+            discordId: `user${ctx.index+1}`
         })));
         // Seed servers
         await seed.server((x) => x({ min: 3, max: 9 }, (ctx) => ({
-            name: `Gubi Test Server ${ctx.index+1}`
+            name: `Gubii Test Server ${ctx.index+1}`,
+            discordId: `server${ctx.index+1}`
         })));
         for (const server of seed.$store.server) {
             // Seed server owner roles
@@ -46,7 +47,7 @@ const main = async () => {
                 name: `${server.name} Owner`,
                 roleType: 1,
                 serverId: server.id,
-                discordId: `${server.name}_owner_id`
+                discordId: `server${server.id}owner`
             }]);
             // Seed links between user + roles
             await seed.userRelation([{
@@ -64,7 +65,7 @@ const main = async () => {
             await seed.guild((x) => x({min: 1, max: 3}, (ctx) => ({
                 gameId: Math.floor(Math.random() * games.length + 1),
                 guildId: `${server.id}${ctx.index+1}`,
-                name: `Gubii Test Guild ${ctx.index+1}`, 
+                name: `${server.id} Gubii Test Guild ${ctx.index+1}`, 
                 serverId: server.id
             })));
         }
@@ -81,7 +82,7 @@ const main = async () => {
                 roleType: 3,
                 serverId: guild.serverId,
                 guildId: guild.id,
-                discordId: `${guild.name}_lead_id`
+                discordId: `guild${guild.id}lead`
             }]);
             // Seed guild management roles
             await seed.userRole([{
@@ -89,7 +90,7 @@ const main = async () => {
                 roleType: 4,
                 serverId: guild.serverId,
                 guildId: guild.id,
-                discordId: `${guild.name}_mgr_id`
+                discordId: `guild${guild.id}manager`
             }]);
             // Seed guild member roles
             await seed.userRole([{
@@ -97,7 +98,7 @@ const main = async () => {
                 roleType: 5,
                 serverId: guild.serverId,
                 guildId: guild.id,
-                discordId: `${guild.name}_mmb_id`
+                discordId: `guild${guild.id}member`
             }]);
         }
     }
