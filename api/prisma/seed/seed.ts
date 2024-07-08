@@ -41,18 +41,24 @@ const main = async () => {
             discordId: `server${ctx.index+1}`
         })));
         for (const server of seed.$store.server) {
-            // Seed server owner roles
-            await seed.userRole([{
-                id: server.id,
+            // Seed server owner roles -> links between user + role
+            const store = await seed.userRole([{
                 name: `${server.name} Owner`,
                 roleType: 1,
                 serverId: server.id,
                 discordId: `server${server.id}owner`
             }]);
-            // Seed links between user + roles
             await seed.userRelation([{
-                userId: server.id,
-                roleId: server.id,
+                userId: server.id
+            }],{
+                connect: { userRole: [store.userRole[0]] }
+            });
+            // Seed server admin roles
+            await seed.userRole([{
+                name: `${server.name} Admin`,
+                roleType: 2,
+                serverId: server.id,
+                discordId: `server${server.id}admin`
             }]);
             // Seed placeholder guilds
             await seed.guild([{

@@ -42,23 +42,80 @@ The languages we are using are TypeScript, ...
 ## /servers
 ### Resource
 ```
+id (number): Unique identifier for server
+name (string): Name of server
+discordId (string): ID of linked discord server
+guilds (number[]): A list of all guilds that are in a server
+games (number[]): A list of all games that are supported in a server
+owner: Details on server owner
+{
+  roleId (number): server owner role,
+  userId (number): owner
+}
+admins: Details on server admins
+{
+  roleId (number): server administrator role,
+  userIds (number[]): A list of admins
+}
 ```
 ### **GET**: /servers `Get a list of all servers`
-Path Parameters:
-```
-```
 Query Parameters:
 ```
-- gameId
-```
-Request Body:
-```
+- gameId (number): ID of game to find servers that support it
 ```
 Example Request:
 ```
+curl -v -X GET \
+  -H "Content-Type: application/json" \
+  http://localhost:9000/servers?gameId=345
 ```
 Example Response:
 ```
+Status: 200 OK
+Body:
+[
+  {
+    id: 991,
+    name: "example_server",
+    discordId: "example_server_id"
+  },
+  {
+    id: 523,
+    name: "example_server_2",
+    discordId: "example_server_id2"
+  },
+]
+```
+### **GET**: /servers/{serverId} `Get details on a single server`
+Path Parameters:
+```
+serverId (number?): server to find details on
+```
+Example Request:
+```
+curl -v -X GET \
+  -H "Content-Type: application/json" \
+  http://localhost:9000/servers/991
+```
+Example Response:
+```
+Status: 200 OK
+Body: 
+{
+  id: 991,
+  name: "example_server",
+  discordId: "example_server_id",
+  guilds: [343, 345, 644],
+  games: [1, 2, 3],
+  owner: {
+    roleId: 421,
+    userId: 345
+  },
+  admins: {
+    roleId: 524,
+    userIds: [523, 543, 654]
+  }
+}
 ```
 ### **POST**: /servers `Add a new server`
 Request Body:
@@ -76,6 +133,11 @@ server: {
     name (string?): name of role
     discordId (string?): ID of linked discord role
   },
+  adminRole (userrole?): details to add to admin role
+  {
+    name (string?): name of role
+    discordId (string?): ID of linked discord role
+  }
 }
 ```
 Example Request:
@@ -164,7 +226,7 @@ Body:
 {
   id: 123,
   name: "example_game_1",
-  guilds: [343,345,644]
+  guilds: [343, 345, 644]
 }
 ```
 ### **POST**: /games `Add a new game to the system`
@@ -291,16 +353,30 @@ Body:
   active: true
 }
 ```
+## /{route}
+### Resource
+```
+```
+### **{HTML FUNCTION}**: /{route} {description}
+Path Parameters:
+```
+```
+Query Parameters:
+```
+```
+Request Body:
+```
+```
+Example Request:
+```
+```
+Example Response:
+```
+```
 
 ### APIs:
 /servers
-- Data structure:
-  - name: name of server
-  - discordId: ID of Discord server
-- /servers
-  - GET: Retrieve all active servers
 - /servers/{serverId}
-  - GET: Retrieve one server
   - PUT: Update the server
   - DELETE: Deactivate the server
 - /servers/{serverId}/guilds

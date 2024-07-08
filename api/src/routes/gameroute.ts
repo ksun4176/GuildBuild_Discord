@@ -105,7 +105,7 @@ export class GameRoute extends Route {
                 id: true,
                 name: true
             }
-        }
+        };
         if (serverId) {
             // find all games supported on a server
             const guildArgs: Prisma.GuildFindManyArgs = {
@@ -116,13 +116,13 @@ export class GameRoute extends Route {
                 select: {
                     gameId: true
                 }
-            }
+            };
             guildArgs.where = GuildModel.addPlaceholderCriteria(guildArgs.where!);
             const guilds = await this.__guildModel.findMany(guildArgs);
             const gameIds = guilds.map((guild) => guild.gameId);
             args.where = {
                 id: { in: gameIds }
-            }
+            };
         }
         return await this.__gameModel.findMany(args);
     }
@@ -136,23 +136,19 @@ export class GameRoute extends Route {
     private async __getGameDetailed(game: Game, serverId?: number) {
         let guildIds;
         if (serverId) {
-            const guildArgs: Prisma.GuildFindManyArgs = {
+            const guilds = await this.__guildModel.findMany({
                 where: {
                     serverId: serverId,
                     gameId: game.id,
                     active: true
-                },
-            }
-            const guilds = await this.__guildModel.findMany(guildArgs);
+                }
+            });
             if (guilds.length === 0) {
                 throw new Error(messages.gameNotSupported);
             }
             guildIds = guilds.filter((guild) => !GuildModel.isPlaceholderGuild(guild)).map((guild) => guild.id);
         }
-        if (guildIds) {
-            return { ...game, guilds: guildIds};
-        }
-        return game;
+        return { ...game, guilds: guildIds};
     }
 
     /**
