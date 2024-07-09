@@ -61,13 +61,13 @@ admins: Details on server admins
 ### **GET**: /servers `Get a list of all servers`
 Query Parameters:
 ```
-- gameId (number): ID of game to find servers that support it
+gameId (number): ID of game to find servers that support it
 ```
 Example Request:
 ```
 curl -v -X GET \
   -H "Content-Type: application/json" \
-  http://localhost:9000/servers?gameId=345
+  http://localhost:9000/servers?gameId=991
 ```
 Example Response:
 ```
@@ -95,7 +95,7 @@ Example Request:
 ```
 curl -v -X GET \
   -H "Content-Type: application/json" \
-  http://localhost:9000/servers/991
+  http://localhost:9000/servers/345
 ```
 Example Response:
 ```
@@ -184,7 +184,7 @@ curl -v -X GET \
   
 curl -v -X GET \
   -H "Content-Type: application/json" \
-  http://localhost:9000/servers/991/games
+  http://localhost:9000/servers/345/games
 ```
 Example Response:
 ```
@@ -217,7 +217,7 @@ curl -v -X GET \
 
 curl -v -X GET \
   -H "Content-Type: application/json" \
-  http://localhost:9000/servers/991/games/123
+  http://localhost:9000/servers/345/games/123
 ```
 Example Response:
 ```
@@ -278,6 +278,101 @@ Body:
 }
 ```
 ## /guilds
+### Resource
+```
+id (number): Unique identifier for guild
+name (string): Name of guild
+serverId (number): Server that the guild belongs to
+gameId (number): Game that the guild belongs to
+guildId (string): Unique identifier for guild in game
+lead: Details on guild lead
+{
+  roleId (number): guild lead role,
+  userId (number): guild lead
+}
+management: Details on guild management
+{
+  roleId (number): guild management role,
+  userIds (number[]): A list of management
+}
+members: Details on guild members
+{
+  roleId (number): guild members role,
+  userIds (number[]): A list of members
+}
+```
+### **GET**: servers/{serverId}/guilds `Get a list of all guilds`
+Path Parameters:
+```
+serverId (number): server to find guilds in it
+```
+Query Parameters:
+```
+gameId (number): ID of game to find guilds that support it
+```
+Example Request:
+```
+curl -v -X GET \
+  -H "Content-Type: application/json" \
+  http://localhost:9000/servers/345/guilds?gameId=991
+```
+Example Response:
+```
+Status: 200 OK
+Body:
+[
+  {
+    id: 634,
+    gameId: 991,
+    serverId: 345,
+    guildId: '436234',
+    name: 'example_guild',
+  },
+  {
+    id: 643,
+    gameId: 991,
+    serverId: 345,
+    guildId: '654352',
+    name: 'example_guild_2',
+  }
+]
+```
+### **GET**: servers/{serverId}/guilds/{guildId} `Get details on a single guild`
+Path Parameters:
+```
+serverId (number): server to check whether the guild is in it
+guildId (number): guild to find details on
+```
+Example Request:
+```
+curl -v -X GET \
+  -H "Content-Type: application/json" \
+  http://localhost:9000/servers/345/guilds/634
+```
+Example Response:
+```
+Status: 200 OK
+Body: 
+{
+  id: 634,
+  gameId: 991,
+  serverId: 345,
+  guildId: '436234',
+  name: 'example_guild',
+  lead: {
+    roleId: 543,
+    userId: 765
+  },
+  management: {
+    roleId: 153,
+    userIds: [675, 809, 980]
+  },
+  members: {
+    roleId: 987,
+    userIds: [678, 523, 123]
+  }
+}
+```
 ### **POST**: /servers/{serverId}/guilds `Add a guild to a server`
 Path Parameters:
 ```
@@ -379,17 +474,9 @@ Example Response:
 - /servers/{serverId}
   - PUT: Update the server
   - DELETE: Deactivate the server
-- /servers/{serverId}/guilds
-  - Data structure:
-    - gameId: ID of game this guild is for
-    - guildId: In game guild ID
-    - name: name of guild
-  - /servers/{serverId}/guilds?gameId={gameId}
-    - GET: Retrieve all active guilds
-  - /servers/{serverId}/guilds/{guildId}
-    - GET: Retrieve one guild
-    - PUT: Update the guild
-    - DELETE: Deactivate the guild
+- /servers/{serverId}/guilds/{guildId}
+  - PUT: Update the guild
+  - DELETE: Deactivate the guild
 /users
 - Data structure:
   - name: name of user

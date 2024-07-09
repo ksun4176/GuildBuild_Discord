@@ -8,6 +8,22 @@ import { RoleType, UserRoleModel } from '../classes/userrolemodel';
 import { UserRelationModel } from '../classes/userrelationmodel';
 import { GuildModel } from '../classes/guildmodel';
 
+// Include:
+// - active guilds
+// - owner + admins details
+const serverInclude = Prisma.validator<Prisma.ServerInclude>()({
+    guilds: {
+        where: { active: true }
+    },
+    roles: {
+        where: { roleType: { in: [RoleType.ServerOwner, RoleType.Administrator] } },
+        include: { users: true }
+    },
+});
+type ServerDetailed = Prisma.ServerGetPayload<{
+    include: typeof serverInclude;
+}>;
+
 export const messages = {
     serverIncomplete: 'The server object is missing properties',
     userNotFound: 'Unique user not found. Can be caused by mismatched id/discordId',
@@ -32,10 +48,9 @@ export class ServerRoute extends Route {
     protected override __setUpRoute() {
         const rootRoute = '/';
         this.route.get(rootRoute, async (req, res, _next) => {
+            const { gameId }  = req.query;
+            const parsedGameId = typeof gameId === "string" ? parseInt(gameId) : undefined;
             try {
-                // look for gameId query
-                const queryGameId = req.query.gameId;
-                const parsedGameId = typeof queryGameId === "string" ? parseInt(queryGameId) : undefined;
                 const result = await this.__getServersSummary(parsedGameId);
                 res.status(200).json(result);
             }
@@ -59,7 +74,10 @@ export class ServerRoute extends Route {
         this.route.param('serverId', async (req, res, next, serverId) => {
             const parsedServerId = parseInt(serverId);
             try {
-                const server = await this.__serverModel.findOne({ where: { id: parsedServerId } });
+                const server = await this.__serverModel.findOne({ 
+                    where: { id: parsedServerId },
+                    include: serverInclude
+                });
                 req.body.serverOriginal = server;
                 next();
             }
@@ -82,7 +100,7 @@ export class ServerRoute extends Route {
 
         this.route.put(paramRoute, async (req, res, _next) => {
             const server = req.body.server;
-            const serverOriginal: Server = req.body.serverOriginal;
+            const serverOriginal: ServerDetailed = req.body.serverOriginal;
             try {
                 const serverResult = await this.__serverModel.update({
                     data: server,
@@ -98,7 +116,7 @@ export class ServerRoute extends Route {
 
         this.route.delete(paramRoute, async (req, res, _next) => {
             try {
-                const serverOriginal: Server = req.body.serverOriginal;
+                const serverOriginal: ServerDetailed = req.body.serverOriginal;
                 await this.__serverModel.delete(serverOriginal);
                 res.sendStatus(204);
             }
@@ -149,7 +167,7 @@ export class ServerRoute extends Route {
      * @param server server to get details about
      * @returns server detail
      */
-    private async __getServerDetailed(server: Server) {
+    private async __getServerDetailed(server: ServerDetailed) {
         if (!server.active) {
             // do not give past basic information if inactive
             return {
@@ -160,41 +178,28 @@ export class ServerRoute extends Route {
             };
         };
         
-        const guilds = await this.__guildModel.findMany({
-            where: {
-                serverId: server.id,
-                active: true,
-            }
-        });
+        const guilds = server.guilds;
         const guildIds = guilds.filter((guild) => !GuildModel.isPlaceholderGuild(guild)).map((guild) => guild.id);
         const gameIds = [...new Set(guilds.map((guild) => guild.gameId))];
 
-        const roles = await this.__userRoleModel.findMany({
-            where: {
-                serverId: server.id,
-                roleType: { in: [RoleType.ServerOwner, RoleType.Administrator] }
-            }
-        });
-        const roleIds = roles.map((role) => role.id);
-        const userRelations = await this.__userRelationModel.findMany({
-            where: {
-                roleId: { in: roleIds }
-            }
-        });
-
+        const roles = server.roles;
         const ownerRole = roles.find((role) => role.roleType === RoleType.ServerOwner);
-        let owner;
-        if (ownerRole) {
-            owner = userRelations.find((userRelation) => userRelation.roleId === ownerRole.id)?.userId;
-        }
-
         const adminRole = roles.find((role) => role.roleType === RoleType.Administrator);
+        
+        let owner;
+        if (ownerRole && ownerRole.users.length > 0) {
+            owner = ownerRole.users[0].userId;
+        }
         let admins;
-        if (adminRole) {
-            admins = userRelations.map((userRelation) => userRelation.userId);
+        if (adminRole && adminRole.users.length > 0) {
+            admins = adminRole.users.map((user) => user.userId);
         }
 
-        return {...server,
+        return {
+            id: server.id,
+            name: server.name,
+            discordId: server.discordId,
+            active: server.active,
             guilds: guildIds,
             games: gameIds,
             owner: {

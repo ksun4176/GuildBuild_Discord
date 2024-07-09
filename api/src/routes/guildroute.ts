@@ -7,6 +7,18 @@ import { RoleType, UserRoleModel } from '../classes/userrolemodel';
 
 type Params<T extends string> = Partial<RouteParameters<':serverId'>> & RouteParameters<T>;
 
+// Include:
+// - lead + management + members details
+const guildInclude = Prisma.validator<Prisma.GuildInclude>()({
+    roles: {
+        where: { roleType: { in: [RoleType.GuildLead, RoleType.GuildManagement, RoleType.GuildMember] } },
+        include: { users: true }
+    },
+});
+type GuildDetailed = Prisma.GuildGetPayload<{
+    include: typeof guildInclude;
+}>;
+
 export const messages = {
     guildIncomplete: 'The guild object is missing properties',
     missingServer: 'Missing serverId',
@@ -28,24 +40,14 @@ export class GuildRoute extends Route {
         this.route.get<typeof rootRoute,Params<typeof rootRoute>>(rootRoute, async (req, res, _next) => {
             const { serverId } = req.params;
             const parsedServerId = serverId ? parseInt(serverId) : undefined;
+            const { gameId }  = req.query;
+            const parsedGameId = typeof gameId === "string" ? parseInt(gameId) : undefined;
             try {
                 if (!parsedServerId) {
-                    throw new Error('No server provided');
+                    throw new Error(messages.missingServer);
                 }
-                const args: Prisma.GuildFindManyArgs = { 
-                    where: {
-                         active: true,
-                         serverId: parsedServerId
-                    }
-                };
-                args.where = GuildModel.addPlaceholderCriteria(args.where!, true);
-                // look for gameId query
-                const queryGameId = req.query.gameId;
-                if (typeof queryGameId === "string") {
-                    args.where!.gameId = parseInt(queryGameId);
-                }
-                const guilds = await this.__guildModel.findMany(args);
-                res.status(200).json({ guilds: guilds });
+                const result = await this.__getGuildsSummary(parsedServerId, parsedGameId);
+                res.status(200).json(result);
             }
             catch (err) {
                 console.error(err);
@@ -75,8 +77,10 @@ export class GuildRoute extends Route {
         this.route.param('guildId', async (req, res, next, guildId)=> {
             try {
                 const parsedGuildId = parseInt(guildId);
-                const args: Prisma.GuildFindUniqueOrThrowArgs = { where: { id: parsedGuildId } };
-                const guild = await this.__guildModel.findOne(args);
+                const guild = await this.__guildModel.findOne({ 
+                    where: { id: parsedGuildId },
+                    include: guildInclude
+                });
                 req.body.guildOriginal = guild;
                 next();
             }
@@ -87,23 +91,10 @@ export class GuildRoute extends Route {
         });
 
         const paramRoute = '/:guildId';
-        this.route.get<typeof paramRoute,Params<typeof paramRoute>>(paramRoute, (req, res, _next) => {
-            let guildOriginal: Partial<Guild> = req.body.guildOriginal;
-            const { serverId } = req.params;
-            const parsedServerId = serverId ? parseInt(serverId) : undefined;
+        this.route.get<typeof paramRoute,Params<typeof paramRoute>>(paramRoute, async (req, res, _next) => {
             try {
-                if (!parsedServerId) {
-                    throw new Error('No server provided');
-                }
-                if (!guildOriginal.active) {
-                    // do not give past basic information if inactive
-                    guildOriginal = {
-                        id: guildOriginal.id,
-                        name: guildOriginal.name,
-                        active: guildOriginal.active
-                    };
-                }
-                res.status(200).json({guild: guildOriginal});
+                const result = await this.__getGuildDetailed(req.body.guildOriginal);
+                res.status(200).json(result);
             }
             catch (err) {
                 console.error(err);
@@ -112,14 +103,9 @@ export class GuildRoute extends Route {
         });
 
         this.route.put<typeof paramRoute,Params<typeof paramRoute>>(paramRoute, async (req, res, _next) => {
-            let guildOriginal: Guild = req.body.guildOriginal;
+            let guildOriginal: GuildDetailed = req.body.guildOriginal;
             const guild = req.body.guild;
-            const { serverId } = req.params;
-            const parsedServerId = serverId ? parseInt(serverId) : undefined;
             try {
-                if (!parsedServerId) {
-                    throw new Error('No server provided');
-                }
                 const guildResult = await this.__guildModel.update(guild, guildOriginal);
                 res.status(202).json({guild: guildResult});
             }
@@ -130,13 +116,8 @@ export class GuildRoute extends Route {
         });
 
         this.route.delete<typeof paramRoute,Params<typeof paramRoute>>(paramRoute, async (req, res, _next) => {
-            let guildOriginal: Guild = req.body.guildOriginal;
-            const { serverId } = req.params;
-            const parsedServerId = serverId ? parseInt(serverId) : undefined;
+            let guildOriginal: GuildDetailed = req.body.guildOriginal;
             try {
-                if (!parsedServerId) {
-                    throw new Error('No server provided');
-                }
                 await this.__guildModel.delete(guildOriginal);
                 res.sendStatus(204);
             }
@@ -145,6 +126,88 @@ export class GuildRoute extends Route {
                 res.sendStatus(500);
             }
         });
+    }
+
+    /**
+     * Get a list of guilds with only their basic details
+     * @param serverId server to find guilds in it
+     * @param gameId the game to see if the guild is for it
+     * @returns List of guilds to show in a summary view
+     */
+    private async __getGuildsSummary(serverId: number, gameId?: number) {
+        const args: Prisma.GuildFindManyArgs = { 
+            where: {
+                 active: true,
+                 serverId: serverId,
+                 gameId: gameId
+            },
+            select: {
+                id: true,
+                name: true,
+                serverId: true,
+                gameId: true,
+                guildId: true
+            }
+        };
+        args.where = GuildModel.addPlaceholderCriteria(args.where!, true);
+        return await this.__guildModel.findMany(args);
+    }
+
+    /**
+     * Get the details on a single guild
+     * @param guild guild to get details about
+     * @returns guild detail
+     */
+    private async __getGuildDetailed(guild: GuildDetailed) {
+        if (!guild.active) {
+            // do not give past basic information if inactive
+            return {
+                id: guild.id,
+                name: guild.name,
+                gameId: guild.gameId,
+                guildId: guild.guildId,
+                active: guild.active
+            };
+        }
+
+        const roles = guild.roles;
+        const leadRole = roles.find((role) => role.roleType === RoleType.GuildLead);
+        const managementRole = roles.find((role) => role.roleType === RoleType.GuildManagement);
+        const memberRole = roles.find((role) => role.roleType === RoleType.GuildMember);
+        
+        let lead;
+        if (leadRole && leadRole.users.length > 0) {
+            lead = leadRole.users[0].userId;
+        }
+        let management;
+        if (managementRole && managementRole.users.length > 0) {
+            management = managementRole.users.map((user) => user.userId);
+        }
+        let members;
+        if (memberRole && memberRole.users.length > 0) {
+            members = memberRole.users.map((user) => user.userId);
+        }
+
+        return {
+            id: guild.id,
+            name: guild.name,
+            serverId: guild.serverId,
+            gameId: guild.gameId,
+            guildId: guild.guildId,
+            active: guild.active,
+            lead: {
+                roleId: leadRole?.id,
+                userId: lead
+            },
+            management: {
+                roleId: managementRole?.id,
+                userIds: management
+            },
+            members: {
+                roleId: memberRole?.id,
+                userIds: members
+            }
+        };
     }
 
     /**
