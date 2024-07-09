@@ -21,7 +21,7 @@ const serverInclude = Prisma.validator<Prisma.ServerInclude>()({
     },
 });
 type ServerDetailed = Prisma.ServerGetPayload<{
-    include: typeof serverInclude;
+    include: typeof serverInclude
 }>;
 
 export const messages = {

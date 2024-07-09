@@ -16,7 +16,7 @@ const guildInclude = Prisma.validator<Prisma.GuildInclude>()({
     },
 });
 type GuildDetailed = Prisma.GuildGetPayload<{
-    include: typeof guildInclude;
+    include: typeof guildInclude
 }>;
 
 export const messages = {

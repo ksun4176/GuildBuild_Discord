@@ -44,7 +44,7 @@ The languages we are using are TypeScript, ...
 ```
 id (number): Unique identifier for server
 name (string): Name of server
-discordId (string): ID of linked discord server
+discordId (string): linked discord server
 guilds (number[]): A list of all guilds that are in a server
 games (number[]): A list of all games that are supported in a server
 owner: Details on server owner
@@ -61,7 +61,7 @@ admins: Details on server admins
 ### **GET**: /servers `Get a list of all servers`
 Query Parameters:
 ```
-gameId (number): ID of game to find servers that support it
+gameId (number): game to find servers that support it
 ```
 Example Request:
 ```
@@ -122,21 +122,21 @@ Request Body:
 ```
 server: {
   name (string): name of server,
-  discordId (string?): ID of linked discord server,
+  discordId (string?): linked discord server,
   owner (user): person who created the server
   {
-    id (number?): ID of owner if already in database,
+    id (number?): owner if already in database,
     discordId (number?): If id is blank, look up user using this
   },
   ownerRole (userrole?):
   {
     name (string?): name of role
-    discordId (string?): ID of linked discord role
+    discordId (string?): linked discord role
   },
   adminRole (userrole?): details to add to admin role
   {
     name (string?): name of role
-    discordId (string?): ID of linked discord role
+    discordId (string?): linked discord role
   }
 }
 ```
@@ -252,7 +252,7 @@ Body:
   name: "example_game"
 }
 ```
-### **POST**: servers/{serverId}/games/{gameId} `Add a game to a server`
+### **POST**: /servers/{serverId}/games/{gameId} `Add a game to a server`
 Path Parameters:
 ```
 serverId (number): server to add game to
@@ -301,14 +301,14 @@ members: Details on guild members
   userIds (number[]): A list of members
 }
 ```
-### **GET**: servers/{serverId}/guilds `Get a list of all guilds`
+### **GET**: /servers/{serverId}/guilds `Get a list of all guilds`
 Path Parameters:
 ```
 serverId (number): server to find guilds in it
 ```
 Query Parameters:
 ```
-gameId (number): ID of game to find guilds that support it
+gameId (number): game to find guilds that support it
 ```
 Example Request:
 ```
@@ -337,7 +337,7 @@ Body:
   }
 ]
 ```
-### **GET**: servers/{serverId}/guilds/{guildId} `Get details on a single guild`
+### **GET**: /servers/{serverId}/guilds/{guildId} `Get details on a single guild`
 Path Parameters:
 ```
 serverId (number): server to check whether the guild is in it
@@ -387,17 +387,17 @@ guild: {
   leadRole (userrole?): details to add to lead role
   {
     name (string?): name of role
-    discordId (string?): ID of linked discord role
+    discordId (string?): linked discord role
   },
   managementRole (userrole?):
   {
     name (string?): name of role
-    discordId (string?): ID of linked discord role
+    discordId (string?): linked discord role
   },
   memberRole (userrole?):
   {
     name (string?): name of role
-    discordId (string?): ID of linked discord role
+    discordId (string?): linked discord role
   },
 }
 ```
@@ -422,12 +422,73 @@ Body:
 }
 ```
 ## /users
+### Resource
+```
+id (number): Unique identifier for user
+name (string): Name of user
+discordId (string): linked discord user
+guilds (number[]): A list of all guilds that this user is in
+games (number[]): A list of all games that this user play in
+roles (number[]): A list of all roles that the user has
+```
+### **GET**: /users `Get a list of all users`
+Query Parameters:
+```
+serverId (number?): server to find users in it
+guildId (number?): guild to find users in it
+```
+Example Request:
+```
+curl -v -X GET \
+  -H "Content-Type: application/json" \
+  http://localhost:9000/users?serverId=345&guildId=645
+```
+Example Response:
+```
+Status: 200 OK
+Body:
+[
+  {
+    id: 463,
+    name: 'example_user',
+    discordId: 'example_user_id',
+    active: true
+  },
+  {
+    id: 564,
+    name: 'example_user_2',
+    discordId: 'example_user_id_2',
+    active: true
+  }
+]
+```
+### **GET**: /users/{userId} `Get details on a single user`
+Example Request:
+```
+curl -v -X GET \
+  -H "Content-Type: application/json" \
+  http://localhost:9000/users/564
+```
+Example Response:
+```
+Status: 200 OK
+Body: 
+{
+  id: 463,
+  name: 'example_user',
+  discordId: 'example_user_id',
+  active: true,
+  guilds: [343, 345, 644],
+  games: [1, 2, 3],
+  roles: [42, 43, 23]
+}
+```
 ### **POST**: /users `Add a user`
 Request Body:
 ```
 user: {
   name (string): name of user
-  discordId (string?): ID of linked discord user
+  discordId (string?): linked discord user
 }
 ```
 Example Request:
@@ -478,12 +539,6 @@ Example Response:
   - PUT: Update the guild
   - DELETE: Deactivate the guild
 /users
-- Data structure:
-  - name: name of user
-  - discordId: Discord user ID
-- /users?serverId={serverId}&gameId={gameId}&guildId={guildId}
-  - GET: Retrieve all users
 - /users/{userId}
-  - GET: Retrieve one user
   - PUT: Update the user
   - DELETE: Deactivate the user
