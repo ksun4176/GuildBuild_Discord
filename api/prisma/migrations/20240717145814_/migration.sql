@@ -48,9 +48,11 @@ CREATE TABLE `User` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(255) NOT NULL,
     `discord_id` VARCHAR(255) NULL,
+    `email` VARCHAR(255) NULL,
     `active` BOOLEAN NOT NULL DEFAULT true,
 
     UNIQUE INDEX `uc_user`(`discord_id`),
+    UNIQUE INDEX `uc_user_email`(`email`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 

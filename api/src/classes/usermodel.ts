@@ -50,7 +50,8 @@ export class UserModel extends Model<'User'> {
     protected override __getValidData(data: any, _original?: User) {
         return {
             name: data.name, 
-            discordId: data.discordId 
+            discordId: data.discordId,
+            email: data.email
         };
     }
 }

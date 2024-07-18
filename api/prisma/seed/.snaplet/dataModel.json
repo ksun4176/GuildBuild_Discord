@@ -550,6 +550,20 @@
           "maxLength": 255
         },
         {
+          "id": "GuildBuild.User.email",
+          "name": "email",
+          "columnName": "email",
+          "type": "varchar",
+          "isRequired": false,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false,
+          "maxLength": 255
+        },
+        {
           "id": "GuildBuild.User.id",
           "name": "id",
           "columnName": "id",
@@ -621,6 +635,12 @@
           "name": "GuildBuild.User.discord_id",
           "fields": [
             "discord_id"
+          ]
+        },
+        {
+          "name": "GuildBuild.User.email",
+          "fields": [
+            "email"
           ]
         }
       ]

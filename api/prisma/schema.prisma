@@ -82,6 +82,8 @@ model User {
   name         String  @db.VarChar(255)
   // discord ID linked to user. Let it be null in case there is no discord set up
   discordId    String? @map("discord_id") @unique(map: "uc_user") @db.VarChar(255)
+  // email of user
+  email        String? @unique(map: "uc_user_email") @db.VarChar(255)
   // whether the user is active
   active       Boolean @default(true)
   // what roles a user has
