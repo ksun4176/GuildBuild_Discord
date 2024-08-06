@@ -427,6 +427,7 @@ Body:
 id (number): Unique identifier for user
 name (string): Name of user
 discordId (string): linked discord user
+email (string): email of user
 guilds (number[]): A list of all guilds that this user is in
 games (number[]): A list of all games that this user play in
 roles (number[]): A list of all roles that the user has
@@ -452,12 +453,14 @@ Body:
     id: 463,
     name: 'example_user',
     discordId: 'example_user_id',
+    email: 'user@gmail.com',
     active: true
   },
   {
     id: 564,
     name: 'example_user_2',
     discordId: 'example_user_id_2',
+    email: 'user2@gmail.com',
     active: true
   }
 ]
@@ -478,6 +481,7 @@ Body:
   name: 'example_user',
   discordId: 'example_user_id',
   active: true,
+  email: 'user@gmail.com',
   guilds: [343, 345, 644],
   games: [1, 2, 3],
   roles: [42, 43, 23]
@@ -489,13 +493,14 @@ Request Body:
 user: {
   name (string): name of user
   discordId (string?): linked discord user
+  email (string?): email of user
 }
 ```
 Example Request:
 ```
 curl -v -X POST \
   -H "Content-Type: application/json" \
-  -d '{ "user": { "name": "example_user", "discordId": "example_user_id" } }' \
+  -d '{ "user": { "name": "example_user", "discordId": "example_user_id", "email": "user@gmail.com" } }' \
   http://localhost:9000/users
 ```
 Example Response:
@@ -506,6 +511,7 @@ Body:
   id: 463,
   name: 'example_user',
   discordId: 'example_user_id',
+  email: "user@gmail.com"
   active: true
 }
 ```
