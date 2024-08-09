@@ -437,6 +437,7 @@ Query Parameters:
 ```
 serverId (number?): server to find users in it
 guildId (number?): guild to find users in it
+discordId (number?): discord ID of user to find
 ```
 Example Request:
 ```

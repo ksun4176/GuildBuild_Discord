@@ -34,11 +34,12 @@ export class UserRoute extends Route {
     protected override __setUpRoute() {
         const rootRoute = '/';
         this.route.get(rootRoute, async (req, res, _next) => {
-            const { serverId, guildId }  = req.query;
+            const { serverId, guildId, discordId }  = req.query;
             const parsedServerId = typeof serverId === "string" ? parseInt(serverId) : undefined;
             const parsedGuildId = typeof guildId === "string" ? parseInt(guildId) : undefined;
+            const parsedDiscordId = typeof discordId === "string" ? discordId : undefined;
             try {
-                const result = await this.__getUsersSummary(parsedServerId, parsedGuildId);
+                const result = await this.__getUsersSummary(parsedServerId, parsedGuildId, parsedDiscordId);
                 res.status(200).json(result);
             }
             catch (err) {
@@ -50,6 +51,7 @@ export class UserRoute extends Route {
         this.route.post(rootRoute, async (req, res, _next) => {
             try {
                 const result = await this.__createUser(req.body.user);
+                console.log('User added: ', result);
                 res.status(201).json(result);
             }
             catch (err) {
@@ -114,14 +116,18 @@ export class UserRoute extends Route {
      * Get a list of users with only their basic details
      * @param serverId server to find users in it
      * @param guildId guild to find users in it
+     * @param discordId discord ID of user to find
      * @returns List of users to show in a summary view
      */
-    private async __getUsersSummary(serverId?: number, guildId?: number) {
+    private async __getUsersSummary(serverId?: number, guildId?: number, discordId?: string) {
         let users = await this.__userModel.findMany({
             where: { active: true },
         });
 
-        if (serverId || guildId) {
+        if (discordId) {
+            users = users.filter((user) => user.discordId === discordId);
+        }
+        else if (serverId || guildId) {
             const userRoleInclude = Prisma.validator<Prisma.UserRoleInclude>()({ users: true });
             type RoleDetailed = Prisma.UserRoleGetPayload<{ include: typeof userRoleInclude }>;
             const roles: Partial<RoleDetailed>[] = await this.__userRoleModel.findMany({
