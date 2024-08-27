@@ -9,7 +9,7 @@
     "build": "npx tsc",
     "start": "node .",
     "dev": "nodemon src/app.ts",
-    "register": "node dist/deployCommands.js"
+    "register": "npx tsc && node dist/deployCommands.js"
   },
   "repository": {
     "type": "git",
@@ -29,12 +29,14 @@
   },
   "homepage": "https://github.com/ksun4176/GuildBuild_Discord#readme",
   "dependencies": {
+    "@prisma/client": "^5.19.0",
     "discord.js": "^14.15.2",
     "dotenv": "^16.4.5"
   },
   "devDependencies": {
     "@types/node": "^20.12.13",
     "nodemon": "^3.1.2",
+    "prisma": "^5.19.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   }

@@ -22,9 +22,8 @@ To start a development bot, run these commands in terminal:
 
 If you change the command definition (description, options, etc.), you will need to redeploy:
 (NOTE: You do not need to redeploy if you make updates to the execute function)
-1. Generate corresponding JavaScript files using `npm run build`
-   - Node does not run on TypeScript so we need to create them so it runs
-2. Deply commands using `npm run register`
+1. Deploy commands using `npm run register`
+   - Node does not run on TypeScript so we need to create the corresponding JavaScript files before registering commands
 
 Once you are done with your changes, run these commands in terminal:
 1. Generate corresponding JavaScript files using `npm run build`

@@ -13,7 +13,7 @@ dotenv.config();
 
 // create a Discord client with the right intents
 const client: Client = new Client({ intents: [
-    IntentsBitField.Flags.Guilds, 
+    IntentsBitField.Flags.Guilds,
     IntentsBitField.Flags.GuildMembers,
     IntentsBitField.Flags.GuildMessages,
     IntentsBitField.Flags.GuildMessageReactions,

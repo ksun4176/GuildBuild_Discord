@@ -1,10 +1,10 @@
-import { CommandInteraction, SlashCommandBuilder } from "discord.js";
+import { ChatInputCommandInteraction, SharedSlashCommand } from "discord.js";
 
 /**
  * Interface for individual commands.
  * This contains all the information used by command handlers in discord.
  */
 export interface CommandInterface {
-    data: SlashCommandBuilder;
-    execute: (interaction: CommandInteraction) => Promise<void>;
+    data: SharedSlashCommand;
+    execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
 }
