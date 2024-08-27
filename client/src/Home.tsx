@@ -9,7 +9,7 @@ class Home extends Component {
         return (
             <div className="App">
                 <button onClick={ () => window.open(authUrl, "_parent") }>
-                    Identify Yourself
+                    Log In
                 </button>
             </div>
         );

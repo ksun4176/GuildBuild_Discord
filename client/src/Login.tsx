@@ -61,7 +61,7 @@ const Login = () => {
                     console.log("User found:", apiUserData);
                 }
                 else {
-                    apiUserData = await axios.post(process.env.REACT_APP_API_URL! + `user`, 
+                    apiUserData = await axios.post(process.env.REACT_APP_API_URL! + `users`, 
                         { user: userContext },
                         { headers: { 'Content-Type': 'application/json' } }
                     );
@@ -94,7 +94,7 @@ const Login = () => {
 
     return <div>
         <h3>Logging in now...</h3>
-        {user && (<Navigate replace to='/dashboard' state={{user: user}} />)}
+        {user && (<Navigate replace to='/dashboard' state={{userContext: user}} />)}
     </div>
 };
 

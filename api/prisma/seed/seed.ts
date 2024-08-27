@@ -35,6 +35,7 @@ const main = async () => {
             name: `User ${ctx.index+1}`,
             discordId: `user${ctx.index+1}`
         })));
+        const numUsers = seed.$store.user.length;
         // Seed servers
         await seed.server((x) => x({ min: 3, max: 9 }, (ctx) => ({
             name: `Gubii Test Server ${ctx.index+1}`,
@@ -76,6 +77,7 @@ const main = async () => {
             })));
         }
 
+        let userCounter = 1;
         // Seed test guilds with guild roles
         for (const guild of seed.$store.guild) {
             // skip placeholders
@@ -99,13 +101,20 @@ const main = async () => {
                 discordId: `guild${guild.id}manager`
             }]);
             // Seed guild member roles
-            await seed.userRole([{
+            const store = await seed.userRole([{
                 name: `${guild.name} Member`,
                 roleType: 5,
                 serverId: guild.serverId,
                 guildId: guild.id,
                 discordId: `guild${guild.id}member`
             }]);
+            if (userCounter <= numUsers) {
+                await seed.userRelation([{
+                    userId: userCounter++
+                }],{
+                    connect: { userRole: [store.userRole[0]] }
+                });
+            }
         }
     }
     
