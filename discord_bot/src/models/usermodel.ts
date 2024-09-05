@@ -1,10 +1,10 @@
 import { PrismaClient, Prisma } from '@prisma/client'
 
 export class UserModel {
-    private __delegate: Prisma.UserDelegate;
+    public delegate: Prisma.UserDelegate;
 
     constructor(prisma: PrismaClient) {
-        this.__delegate = prisma.user;
+        this.delegate = prisma.user;
     }
 
     /**
@@ -16,14 +16,14 @@ export class UserModel {
      */
     public async create(name: string, discordId?: string, email?: string) {
         if (!discordId) {
-            return await this.__delegate.create({
+            return await this.delegate.create({
                 data: {
                     name: name,
                     email: email
                 }
             });
         }
-        return await this.__delegate.upsert({
+        return await this.delegate.upsert({
             create: {
                 name: name,
                 discordId: discordId,

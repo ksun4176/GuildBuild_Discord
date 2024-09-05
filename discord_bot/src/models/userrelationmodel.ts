@@ -1,10 +1,10 @@
 import { PrismaClient, Prisma } from '@prisma/client';
 
 export class UserRelationModel {
-    private __delegate: Prisma.UserRelationDelegate;
+    public delegate: Prisma.UserRelationDelegate;
 
     constructor(prisma: PrismaClient) {
-        this.__delegate = prisma.userRelation;
+        this.delegate = prisma.userRelation;
     }
 
     /**
@@ -14,7 +14,7 @@ export class UserRelationModel {
      * @returns Link between user and role
      */
     public async create(userId: number, roleId: number) {
-        return await this.__delegate.upsert({
+        return await this.delegate.upsert({
             create: {
                 userId: userId,
                 roleId: roleId

@@ -59,7 +59,7 @@ const setupserverCommand: CommandInterface = {
             const ownerRole = await userRoleModel.create(ownerRoleName, server.id, undefined, ownerRoleInfo?.id, RoleType.ServerOwner);
             await userRelationModel.create(owner.id, ownerRole.id);
 
-            let message = '### Server Is Now Set Up\n' +
+            let message = `### Server Is Now Set Up\n` +
                 `- Name: ${server.name}\n` +
                 `- Owner: <@${owner.discordId}>\n`;
             

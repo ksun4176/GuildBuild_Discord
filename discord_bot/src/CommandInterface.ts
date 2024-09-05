@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, SharedSlashCommand } from "discord.js";
+import { AutocompleteInteraction, ChatInputCommandInteraction, SharedSlashCommand } from "discord.js";
 
 /**
  * Interface for individual commands.
@@ -7,4 +7,5 @@ import { ChatInputCommandInteraction, SharedSlashCommand } from "discord.js";
 export interface CommandInterface {
     data: SharedSlashCommand;
     execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
+    autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>;
 }

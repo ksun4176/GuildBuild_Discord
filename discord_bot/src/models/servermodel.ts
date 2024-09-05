@@ -1,10 +1,10 @@
 import { PrismaClient, Prisma } from '@prisma/client'
 
 export class ServerModel {
-    private __delegate: Prisma.ServerDelegate;
+    public delegate: Prisma.ServerDelegate;
 
     constructor(prisma: PrismaClient) {
-        this.__delegate = prisma.server;
+        this.delegate = prisma.server;
     }
 
     /**
@@ -15,13 +15,13 @@ export class ServerModel {
      */
     public async create(name: string, discordId?: string) {
         if (!discordId) {
-            return await this.__delegate.create({
+            return await this.delegate.create({
                 data: {
                     name: name
                 }
             });
         }
-        return await this.__delegate.upsert({
+        return await this.delegate.upsert({
             create: {
                 name: name,
                 discordId: discordId,

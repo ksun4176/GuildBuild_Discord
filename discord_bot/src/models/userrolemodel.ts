@@ -9,10 +9,10 @@ export enum RoleType {
 }
 
 export class UserRoleModel {
-    private __delegate: Prisma.UserRoleDelegate;
+    public delegate: Prisma.UserRoleDelegate;
 
     constructor(prisma: PrismaClient) {
-        this.__delegate = prisma.userRole;
+        this.delegate = prisma.userRole;
     }
 
     /**
@@ -26,7 +26,7 @@ export class UserRoleModel {
      */
     public async create(name: string, serverId: number, guildId?: number, discordId?: string, roleType?: RoleType) {
         if (!discordId) {
-            return await this.__delegate.create({
+            return await this.delegate.create({
                 data: {
                     name: name,
                     serverId: serverId,
@@ -35,7 +35,7 @@ export class UserRoleModel {
                 }
             });
         }
-        return await this.__delegate.upsert({
+        return await this.delegate.upsert({
             create: {
                 name: name,
                 serverId: serverId,
