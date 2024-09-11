@@ -1,86 +1,125 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import { CommandInterface } from "../../CommandInterface";
-import { PrismaClient } from "@prisma/client";
-import { ServerModel } from "../../models/servermodel";
-import { UserModel } from "../../models/usermodel";
-import { UserRelationModel } from "../../models/userrelationmodel";
-import { RoleType, UserRoleModel } from "../../models/userrolemodel";
+import { CommandInterface, GetCommandInfo } from "../../CommandInterface";
+import { UserRoleType } from "../../DatabaseHelper";
 
-const strings = {
-    commandName: 'setupserver',
-    commandDescription: 'Adds server information to the database',
-    invalidServer: 'There was an issue creating the server',
-    notInServer: 'This command needs to be ran in a server',
-    options: {
-        ownerRole: 'ownerrole',
-        adminRole: 'adminrole'
-    },
-    optionsDescription: {
-        ownerRole: 'role for server owner',
-        adminRole: 'role for server admins'
-    }
+const options = {
+    ownerRole: 'ownerrole',
+    adminRole: 'adminrole'
 }
 
 const setupserverCommand: CommandInterface = {
     data: new SlashCommandBuilder()
-        .setName(strings.commandName)
-        .setDescription(strings.commandDescription)
+        .setName('setupserver')
+        .setDescription('Adds server information to the database')
         .addRoleOption(option => 
-            option.setName(strings.options.ownerRole)
-                .setDescription(strings.optionsDescription.ownerRole)
-        )
-        .addRoleOption(option => 
-            option.setName(strings.options.adminRole)
-                .setDescription(strings.optionsDescription.adminRole)
+            option.setName(options.adminRole)
+                .setDescription('role for server admins')
         ),
     
     async execute(interaction: ChatInputCommandInteraction) {
         if (!interaction.guild) {
-            await interaction.reply(strings.notInServer);
+            await interaction.reply('This command needs to be ran in a server');
             return;
         }
         await interaction.deferReply();
         const serverInfo = interaction.guild;
         const ownerInfo = await serverInfo.fetchOwner();
-        const ownerRoleInfo = interaction.options.getRole(strings.options.ownerRole);
-        const adminRoleInfo = interaction.options.getRole(strings.options.adminRole);
 
+        const adminRoleInfo = interaction.options.getRole(options.adminRole);
+        let errorMessage = 'There was an issue setting up the server.\n';
         try {
-            const prisma = new PrismaClient();
-            const userModel = new UserModel(prisma);
-            const serverModel = new ServerModel(prisma);
-            const userRoleModel = new UserRoleModel(prisma);
-            const userRelationModel = new UserRelationModel(prisma);
-
-            const owner = await userModel.create(ownerInfo.user.username, ownerInfo.id);
-            const server = await serverModel.create(serverInfo.name, serverInfo.id);
-
-            const ownerRoleName = ownerRoleInfo?.name ?? `${server.name} Owner`;
-            const ownerRole = await userRoleModel.create(ownerRoleName, server.id, undefined, ownerRoleInfo?.id, RoleType.ServerOwner);
-            await userRelationModel.create(owner.id, ownerRole.id);
-
-            let message = `### Server Is Now Set Up\n` +
-                `- Name: ${server.name}\n` +
-                `- Owner: <@${owner.discordId}>\n`;
+            const { prisma, caller } = await GetCommandInfo(interaction.user);
             
-            const roleMessages = [];
-            if (ownerRoleInfo) {
-                roleMessages.push(`<@&${ownerRole.discordId}>`);
+            // check permission
+            if (ownerInfo.id !== caller.discordId) {
+                interaction.editReply('Only the server owner has permission to run this command');
+                return;
             }
+            
+            // create server object
+            const server = await prisma.server.upsert({
+                create: {
+                    name: serverInfo.name,
+                    discordId: serverInfo.id,
+                },
+                where: {
+                    discordId: serverInfo.id
+                },
+                update: {
+                    name: serverInfo.name
+                }
+            });
+            let message = `### Server Is Now Set Up\n` +
+                `- Name: ${server.name}\n`;
+
+            // assign server owner
+            let ownerRole = await prisma.userRole.findFirst({
+                where: {
+                    server: server,
+                    roleType: UserRoleType.ServerOwner
+                }
+            });
+            if (!ownerRole) {
+                ownerRole = await prisma.userRole.create({
+                    data: {
+                        name: `${server.name} Owner`,
+                        serverId: server.id,
+                        roleType: UserRoleType.ServerOwner
+                    }
+                });
+            }
+            const ownerRelation = await prisma.userRelation.findFirst({ 
+                where: { role: ownerRole } 
+            });
+            if (!ownerRelation) {
+                await prisma.userRelation.create({ 
+                    data: {
+                        userId: caller.id,
+                        roleId: ownerRole.id
+                    }
+                });
+            }
+            else {
+                await prisma.userRelation.update({
+                    where: ownerRelation,
+                    data: { userId: caller.id }
+                });
+            }
+            message += `- Owner: <@${caller.discordId}>\n`;
+            
             if (adminRoleInfo) {
-                const adminRole = await userRoleModel.create(adminRoleInfo.name, server.id, undefined, adminRoleInfo.id, RoleType.Administrator);
-                roleMessages.push(`<@&${adminRole.discordId}>`);
+                try {
+                    await prisma.userRole.create({
+                        data: {
+                            name: adminRoleInfo.name,
+                            serverId: server.id,
+                            roleType: UserRoleType.Administrator,
+                            discordId: adminRoleInfo.id
+                        }
+                    });
+                }
+                catch (error) {
+                    errorMessage += `- Could not add admin role. Has this role already been used?\n`;
+                    throw error;
+                }
             }
-            if (roleMessages.length > 0) {
-                message += `- Roles Added: ${roleMessages.join(' ')}\n`;
+            const adminRoles = await prisma.userRole.findMany({
+                where: {
+                    server: server,
+                    roleType: UserRoleType.Administrator,
+                }
+            });
+            if (adminRoles.length > 0) {
+                message += `- Admin roles: ${adminRoles.map(role => `<@&${role.discordId}>`).join(' ')}\n`;
             }
 
             console.log(message);
+            message += `You can now call /addgame to add support for games you want on your server.\n`
             await interaction.editReply(message);
         }
         catch (error) {
             console.error(error);
-            await interaction.editReply(strings.invalidServer);
+            await interaction.editReply(errorMessage);
         }
     },
 }

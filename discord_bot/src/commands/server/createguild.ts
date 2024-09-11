@@ -1,107 +1,137 @@
-import { AutocompleteInteraction, ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import { CommandInterface } from "../../CommandInterface";
-import { PrismaClient } from "@prisma/client";
-import { GuildModel } from "../../models/guildmodel";
-import { ServerModel } from "../../models/servermodel";
-import { RoleType, UserRoleModel } from "../../models/userrolemodel";
+import { APIRole, AutocompleteInteraction, ChatInputCommandInteraction, Role, SlashCommandBuilder } from "discord.js";
+import { CommandInterface, GetCommandInfo } from "../../CommandInterface";
+import { Guild, Prisma, PrismaClient } from "@prisma/client";
+import { UserRoleType } from "../../DatabaseHelper";
 
-const strings = {
-    commandName: 'createguild',
-    commandDescription: 'Create (or update) a guild in the server',
-    invalidGuild: 'There was an issue creating the guild',
-    notInServer: 'This command needs to be ran in a server',
-    options: {
-        game: 'game',
-        ingameid: 'ingameid',
-        name: 'name',
-        leadrole: 'leadrole',
-        managementrole: 'managementrole',
-        memberrole: 'memberrole'
-    },
-    optionsDescription: {
-        game: 'game guild is in',
-        ingameid: 'ID in game',
-        name: 'name of guild',
-        leadrole: 'role for guild lead',
-        managementrole: 'role for guild management',
-        memberrole: 'role for guild members'
-    }
+const options = {
+    game: 'game',
+    ingameid: 'ingameid',
+    name: 'name',
+    leadrole: 'leadrole',
+    managementrole: 'managementrole',
+    memberrole: 'memberrole'
 }
 
 const setupserverCommand: CommandInterface = {
     data: new SlashCommandBuilder()
-        .setName(strings.commandName)
-        .setDescription(strings.commandDescription)
+        .setName('createguild')
+        .setDescription('Create (or update) a guild in the server')
         .addIntegerOption(option =>
-            option.setName(strings.options.game)
-                .setDescription(strings.optionsDescription.game)
+            option.setName(options.game)
+                .setDescription('game guild is in')
                 .setRequired(true)
                 .setAutocomplete(true)
         )
         .addStringOption(option =>
-            option.setName(strings.options.ingameid)
-                .setDescription(strings.optionsDescription.ingameid)
+            option.setName(options.ingameid)
+                .setDescription('ID in game')
                 .setRequired(true)
         )
         .addStringOption(option =>
-            option.setName(strings.options.name)
-            .setDescription(strings.optionsDescription.name)
+            option.setName(options.name)
+            .setDescription('name of guild')
             .setRequired(true)
         )
         .addRoleOption(option =>
-            option.setName(strings.options.leadrole)
-            .setDescription(strings.optionsDescription.leadrole)
+            option.setName(options.leadrole)
+            .setDescription('role for guild lead')
         )
         .addRoleOption(option =>
-            option.setName(strings.options.managementrole)
-            .setDescription(strings.optionsDescription.managementrole)
+            option.setName(options.managementrole)
+            .setDescription('role for guild management')
         )
         .addRoleOption(option =>
-            option.setName(strings.options.memberrole)
-            .setDescription(strings.optionsDescription.memberrole)
+            option.setName(options.memberrole)
+            .setDescription('role for guild members')
         ),
     
     async execute(interaction: ChatInputCommandInteraction) {
         if (!interaction.guild) {
-            await interaction.reply(strings.notInServer);
+            await interaction.reply('This command needs to be ran in a server');
             return;
         }
         await interaction.deferReply();
         const serverInfo = interaction.guild;
-        const gameId = interaction.options.getInteger(strings.options.game);
-        const inGameId = interaction.options.getString(strings.options.ingameid);
-        const name = interaction.options.getString(strings.options.name);
-        const leadRoleInfo = interaction.options.getRole(strings.options.leadrole);
-        const managementRoleInfo = interaction.options.getRole(strings.options.managementrole);
-        const memberRoleInfo = interaction.options.getRole(strings.options.memberrole);
+        
+        const gameId = interaction.options.getInteger(options.game);
+        const inGameId = interaction.options.getString(options.ingameid);
+        const name = interaction.options.getString(options.name);
+        const leadRoleInfo = interaction.options.getRole(options.leadrole);
+        const managementRoleInfo = interaction.options.getRole(options.managementrole);
+        const memberRoleInfo = interaction.options.getRole(options.memberrole);
+        let errorMessage = 'There was an issue creating the guild.\n';
         try {
-            const prisma = new PrismaClient();
-            const serverModel = new ServerModel(prisma);
-            const guildModel = new GuildModel(prisma);
-            const userRoleModel = new UserRoleModel(prisma);
-            const server = await serverModel.delegate.findUniqueOrThrow({ where: {discordId: serverInfo.id } });
-            const guild = await guildModel.create(name!, server.id, gameId!, inGameId!);
+            const { prisma, caller, databaseHelper } = await GetCommandInfo(interaction.user);
             
+            const server = await prisma.server.findUniqueOrThrow({ where: {discordId: serverInfo.id } });
+            // check if server owner OR admin
+            const roles: Prisma.UserRoleWhereInput[] = [
+                { serverId: server.id, roleType: UserRoleType.ServerOwner },
+                { serverId: server.id, roleType: UserRoleType.Administrator }
+            ]
+            const hasPermission = await databaseHelper.userHasPermission(caller.id, roles);
+            if (!hasPermission) {
+                interaction.editReply('Only the server owner and administrators have permission to run this command');
+                return;
+            }
+
+            // create guild object
+            const guild = await prisma.guild.upsert({
+                create: {
+                    name: name!,
+                    serverId: server.id,
+                    gameId: gameId!,
+                    guildId: inGameId!
+                },
+                where: {
+                    gameId_guildId_serverId: {
+                        serverId: server.id,
+                        gameId: gameId!,
+                        guildId: inGameId!
+                    }
+                },
+                update: {
+                    active: true,
+                    name: name!
+                },
+                include: {
+                    game: true
+                }
+            });
             let message = `### Guild Added\n` +
                 `- ID: ${guild.id}\n` +
                 `- Name: ${guild.name}\n` +
                 `- Game: ${guild.game.name}\n`;
             
-            const roleMessages = [];
             if (leadRoleInfo) {
-                const leadRole = await userRoleModel.create(`${name} Lead`, guild.serverId, guild.id, leadRoleInfo.id, RoleType.GuildLead);
-                roleMessages.push(`<@&${leadRole.discordId}>`);
+                try {
+                    const leadRole = await createGuildRole(prisma, guild, UserRoleType.GuildLead, leadRoleInfo);
+                    message += `- Lead role: <@&${leadRole.discordId}>`;
+                }
+                catch (error) {
+                    errorMessage += `- Could not add lead role. Has this role already been used?\n`;
+                    throw error;
+                }
             }
             if (managementRoleInfo) {
-            const managementRole = await userRoleModel.create(`${name} Management`, guild.serverId, guild.id, managementRoleInfo.id, RoleType.GuildManagement);
-                roleMessages.push(`<@&${managementRole.discordId}>`);
+                try {
+                    const managementRole = await createGuildRole(prisma, guild, UserRoleType.GuildManagement, managementRoleInfo);
+                    message += `- Management role: <@&${managementRole.discordId}>`;
+                }
+                catch (error) {
+                    errorMessage += `- Could not add management role. Has this role already been used?\n`;
+                    throw error;
+                }
             }
             if (memberRoleInfo) {
-                const memberRole = await userRoleModel.create(`${name} Member`, guild.serverId, guild.id, memberRoleInfo.id, RoleType.GuildMember);
-                roleMessages.push(`<@&${memberRole.discordId}>`);
-            }
-            if (roleMessages.length > 0) {
-                message += `- Roles Added: ${roleMessages.join(' ')}\n`;
+                try {
+                    const memberRole = await createGuildRole(prisma, guild, UserRoleType.GuildMember, memberRoleInfo);
+                    message += `- Member role: <@&${memberRole.discordId}>`;
+                }
+                catch (error) {
+                    errorMessage += `- Could not add member role. Has this role already been used?\n`;
+                    throw error;
+                }
             }
 
             console.log(message);
@@ -109,7 +139,7 @@ const setupserverCommand: CommandInterface = {
         }
         catch (error) {
             console.error(error);
-            await interaction.editReply(strings.invalidGuild);
+            await interaction.editReply(errorMessage);
         }
     },
 
@@ -119,15 +149,44 @@ const setupserverCommand: CommandInterface = {
         }
         const serverInfo = interaction.guild;
         
-        const prisma = new PrismaClient();
-        const serverModel = new ServerModel(prisma);
-        const server = await serverModel.delegate.findUniqueOrThrow({ where: {discordId: serverInfo.id } });
-        const guildModel = new GuildModel(prisma);
-        const gameGuilds = await guildModel.getPlaceholderGuilds(server.id);
+        const { prisma, databaseHelper } = await GetCommandInfo(interaction.user);
+        const server = await prisma.server.findUniqueOrThrow({ where: {discordId: serverInfo.id } });
+        const gameGuilds = await databaseHelper.getPlaceholderGuilds(server.id);
 		await interaction.respond(
 			gameGuilds.map(guild => ({ name: guild.game.name, value: guild.game.id })),
 		);
     },
+}
+
+/**
+ * Create a UserRole object for the guild
+ * @param prisma Prisma Client to talk to database
+ * @param guild guild information
+ * @param roleType type to assign
+ * @param roleInfo discord role information
+ * @returns UserRole object
+ */
+async function createGuildRole(prisma: PrismaClient, guild: Guild, roleType: UserRoleType, roleInfo: Role | APIRole) {
+    return await prisma.userRole.upsert({
+        create: {
+            name: roleInfo.name,
+            serverId: guild.serverId,
+            guildId: guild.id,
+            roleType: roleType,
+            discordId: roleInfo.id
+        },
+        where: {
+            roleType_serverId_guildId: {
+                roleType: roleType,
+                serverId: guild.serverId,
+                guildId: guild.id
+            }
+        },
+        update: {
+            name: roleInfo.name,
+            discordId: roleInfo.id
+        }
+    });
 }
 
 export = setupserverCommand;
