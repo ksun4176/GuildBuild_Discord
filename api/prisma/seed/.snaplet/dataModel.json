@@ -1,5 +1,209 @@
 {
   "models": {
+    "Channel_Purpose": {
+      "id": "GuildBuild.Channel_Purpose",
+      "schemaName": "GuildBuild",
+      "tableName": "Channel_Purpose",
+      "fields": [
+        {
+          "id": "GuildBuild.Channel_Purpose.discord_id",
+          "name": "discord_id",
+          "columnName": "discord_id",
+          "type": "varchar",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false,
+          "maxLength": 255
+        },
+        {
+          "id": "GuildBuild.Channel_Purpose.guild_id",
+          "name": "guild_id",
+          "columnName": "guild_id",
+          "type": "int",
+          "isRequired": false,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false,
+          "maxLength": null
+        },
+        {
+          "id": "GuildBuild.Channel_Purpose.id",
+          "name": "id",
+          "columnName": "id",
+          "type": "int",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": {
+            "identifier": "GuildBuild.Channel_Purpose.id",
+            "increment": 1,
+            "start": 1
+          },
+          "hasDefaultValue": false,
+          "isId": true,
+          "maxLength": null
+        },
+        {
+          "id": "GuildBuild.Channel_Purpose.role_type",
+          "name": "role_type",
+          "columnName": "role_type",
+          "type": "int",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false,
+          "maxLength": null
+        },
+        {
+          "id": "GuildBuild.Channel_Purpose.server_id",
+          "name": "server_id",
+          "columnName": "server_id",
+          "type": "int",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false,
+          "maxLength": null
+        },
+        {
+          "name": "Channel_Purpose_Type",
+          "type": "Channel_Purpose_Type",
+          "isRequired": true,
+          "kind": "object",
+          "relationName": "Channel_PurposeToChannel_Purpose_Type",
+          "relationFromFields": [
+            "role_type"
+          ],
+          "relationToFields": [
+            "id"
+          ],
+          "isList": false,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        },
+        {
+          "name": "Guild",
+          "type": "Guild",
+          "isRequired": false,
+          "kind": "object",
+          "relationName": "Channel_PurposeToGuild",
+          "relationFromFields": [
+            "guild_id"
+          ],
+          "relationToFields": [
+            "id"
+          ],
+          "isList": false,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        },
+        {
+          "name": "Server",
+          "type": "Server",
+          "isRequired": true,
+          "kind": "object",
+          "relationName": "Channel_PurposeToServer",
+          "relationFromFields": [
+            "server_id"
+          ],
+          "relationToFields": [
+            "id"
+          ],
+          "isList": false,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        }
+      ],
+      "uniqueConstraints": [
+        {
+          "name": "GuildBuild.Channel_Purpose.id",
+          "fields": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "Channel_Purpose_Type": {
+      "id": "GuildBuild.Channel_Purpose_Type",
+      "schemaName": "GuildBuild",
+      "tableName": "Channel_Purpose_Type",
+      "fields": [
+        {
+          "id": "GuildBuild.Channel_Purpose_Type.id",
+          "name": "id",
+          "columnName": "id",
+          "type": "int",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": {
+            "identifier": "GuildBuild.Channel_Purpose_Type.id",
+            "increment": 1,
+            "start": 1
+          },
+          "hasDefaultValue": false,
+          "isId": true,
+          "maxLength": null
+        },
+        {
+          "id": "GuildBuild.Channel_Purpose_Type.name",
+          "name": "name",
+          "columnName": "name",
+          "type": "varchar",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false,
+          "maxLength": 255
+        },
+        {
+          "name": "Channel_Purpose",
+          "type": "Channel_Purpose",
+          "isRequired": false,
+          "kind": "object",
+          "relationName": "Channel_PurposeToChannel_Purpose_Type",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isList": true,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        }
+      ],
+      "uniqueConstraints": [
+        {
+          "name": "GuildBuild.Channel_Purpose_Type.id",
+          "fields": [
+            "id"
+          ]
+        }
+      ]
+    },
     "Game": {
       "id": "GuildBuild.Game",
       "schemaName": "GuildBuild",
@@ -191,6 +395,20 @@
             "id"
           ],
           "isList": false,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        },
+        {
+          "name": "Channel_Purpose",
+          "type": "Channel_Purpose",
+          "isRequired": false,
+          "kind": "object",
+          "relationName": "Channel_PurposeToGuild",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isList": true,
           "isId": false,
           "isGenerated": false,
           "sequence": false,
@@ -457,6 +675,20 @@
           "hasDefaultValue": false,
           "isId": false,
           "maxLength": 255
+        },
+        {
+          "name": "Channel_Purpose",
+          "type": "Channel_Purpose",
+          "isRequired": false,
+          "kind": "object",
+          "relationName": "Channel_PurposeToServer",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isList": true,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
         },
         {
           "name": "Guild",

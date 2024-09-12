@@ -1,6 +1,11 @@
 import { Guild, Prisma, PrismaClient } from "@prisma/client";
 import { APIRole, Role } from "discord.js";
 
+export enum ChannelPurposeType {
+    Recruitment = 1,
+    Applicant = 2
+}
+
 export enum UserRoleType {
     ServerOwner = 1,
     Administrator = 2,

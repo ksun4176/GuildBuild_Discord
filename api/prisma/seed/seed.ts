@@ -14,15 +14,22 @@ const main = async () => {
     // Truncate all tables in the database
     await seed.$resetDatabase();
 
+    // Seed channel_purpose_types
+    const channelPurposeTypes = [
+        'Recruitment',
+        'Applicant'
+    ]
+    await seed.channelPurposeType(channelPurposeTypes.map((type, index) => { return { id: index+1, name: type } }));
+
     // Seed user_role_types
-    const roleTypes = [
+    const userRoleTypes = [
         'Server Owner',
         'Administrator',
         'Guild Lead',
         'Guild Management',
         'Guild Member',
     ]
-    await seed.userRoleType(roleTypes.map((type, index) => { return { id: index+1, name: type } }));
+    await seed.userRoleType(userRoleTypes.map((type, index) => { return { id: index+1, name: type } }));
     // Seed games
     const games = [
         'AFK Arena'
