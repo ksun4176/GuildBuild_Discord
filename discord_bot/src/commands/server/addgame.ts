@@ -4,7 +4,10 @@ import { Prisma } from "@prisma/client";
 import { UserRoleType } from "../../DatabaseHelper";
 
 const options = {
-    game: 'game'
+    game: 'game',
+    leadrole: 'leadrole',
+    managementrole: 'managementrole',
+    memberrole: 'memberrole'
 }
 
 const setupserverCommand: CommandInterface = {
@@ -16,6 +19,18 @@ const setupserverCommand: CommandInterface = {
                 .setDescription('game to add to server')
                 .setRequired(true)
                 .setAutocomplete(true)
+        )
+        .addRoleOption(option =>
+            option.setName(options.leadrole)
+            .setDescription('shared role for all guild leads for the game')
+        )
+        .addRoleOption(option =>
+            option.setName(options.managementrole)
+            .setDescription('shared role for all guild management for the game')
+        )
+        .addRoleOption(option =>
+            option.setName(options.memberrole)
+            .setDescription('shared role for all guild members for the game')
         ),
     
     async execute(interaction: ChatInputCommandInteraction) {
@@ -27,6 +42,10 @@ const setupserverCommand: CommandInterface = {
         const serverInfo = interaction.guild;
 
         const gameId = interaction.options.getInteger(options.game);
+        const leadRoleInfo = interaction.options.getRole(options.leadrole);
+        const managementRoleInfo = interaction.options.getRole(options.managementrole);
+        const memberRoleInfo = interaction.options.getRole(options.memberrole);
+        let errorMessage = 'There was an issue adding support for the game.\n';
         try {
             const { prisma, caller, databaseHelper } = await GetCommandInfo(interaction.user);
 
@@ -45,13 +64,44 @@ const setupserverCommand: CommandInterface = {
             const gamePlaceholderGuild = await databaseHelper.createPlaceholderGuild(gameId!, server.id);
 
             let message = `Game '${gamePlaceholderGuild.game.name}' is added to the server '${server.name}'\n`;
+            if (leadRoleInfo) {
+                try {
+                    const leadRole = await databaseHelper.createGuildRole(prisma, gamePlaceholderGuild, UserRoleType.GuildLead, leadRoleInfo);
+                    message += `- Lead role: <@&${leadRole.discordId}>`;
+                }
+                catch (error) {
+                    errorMessage += `- Could not add lead role. Has this role already been used?\n`;
+                    throw error;
+                }
+            }
+            if (managementRoleInfo) {
+                try {
+                    const managementRole = await databaseHelper.createGuildRole(prisma, gamePlaceholderGuild, UserRoleType.GuildManagement, managementRoleInfo);
+                    message += `- Management role: <@&${managementRole.discordId}>`;
+                }
+                catch (error) {
+                    errorMessage += `- Could not add management role. Has this role already been used?\n`;
+                    throw error;
+                }
+            }
+            if (memberRoleInfo) {
+                try {
+                    const memberRole = await databaseHelper.createGuildRole(prisma, gamePlaceholderGuild, UserRoleType.GuildMember, memberRoleInfo);
+                    message += `- Member role: <@&${memberRole.discordId}>`;
+                }
+                catch (error) {
+                    errorMessage += `- Could not add member role. Has this role already been used?\n`;
+                    throw error;
+                }
+            }
+            
             console.log(message);
             message += `You can now call /createguild to add guilds for this game.\n`
             await interaction.editReply(message);
         }
         catch (error) {
             console.error(error);
-            await interaction.editReply('There was an issue adding the game to the server');
+            await interaction.editReply(errorMessage);
         }
     },
 

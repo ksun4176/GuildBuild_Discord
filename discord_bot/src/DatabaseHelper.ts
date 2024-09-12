@@ -1,4 +1,5 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Guild, Prisma, PrismaClient } from "@prisma/client";
+import { APIRole, Role } from "discord.js";
 
 export enum UserRoleType {
     ServerOwner = 1,
@@ -83,6 +84,38 @@ export class DatabaseHelper {
             },
             include: {
                 game: true
+            }
+        });
+    }
+
+    
+    /**
+     * Create a UserRole object for the guild
+     * @param prisma Prisma Client to talk to database
+     * @param guild guild information
+     * @param roleType type to assign
+     * @param roleInfo discord role information
+     * @returns UserRole object
+     */
+    public async createGuildRole(prisma: PrismaClient, guild: Guild, roleType: UserRoleType, roleInfo: Role | APIRole) {
+        return await prisma.userRole.upsert({
+            create: {
+                name: roleInfo.name,
+                serverId: guild.serverId,
+                guildId: guild.id,
+                roleType: roleType,
+                discordId: roleInfo.id
+            },
+            where: {
+                roleType_serverId_guildId: {
+                    roleType: roleType,
+                    serverId: guild.serverId,
+                    guildId: guild.id
+                }
+            },
+            update: {
+                name: roleInfo.name,
+                discordId: roleInfo.id
             }
         });
     }

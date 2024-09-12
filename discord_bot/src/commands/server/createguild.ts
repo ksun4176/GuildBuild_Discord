@@ -1,6 +1,6 @@
-import { APIRole, AutocompleteInteraction, ChatInputCommandInteraction, Role, SlashCommandBuilder } from "discord.js";
+import { AutocompleteInteraction, ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import { CommandInterface, GetCommandInfo } from "../../CommandInterface";
-import { Guild, Prisma, PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { UserRoleType } from "../../DatabaseHelper";
 
 const options = {
@@ -105,7 +105,7 @@ const setupserverCommand: CommandInterface = {
             
             if (leadRoleInfo) {
                 try {
-                    const leadRole = await createGuildRole(prisma, guild, UserRoleType.GuildLead, leadRoleInfo);
+                    const leadRole = await databaseHelper.createGuildRole(prisma, guild, UserRoleType.GuildLead, leadRoleInfo);
                     message += `- Lead role: <@&${leadRole.discordId}>`;
                 }
                 catch (error) {
@@ -115,7 +115,7 @@ const setupserverCommand: CommandInterface = {
             }
             if (managementRoleInfo) {
                 try {
-                    const managementRole = await createGuildRole(prisma, guild, UserRoleType.GuildManagement, managementRoleInfo);
+                    const managementRole = await databaseHelper.createGuildRole(prisma, guild, UserRoleType.GuildManagement, managementRoleInfo);
                     message += `- Management role: <@&${managementRole.discordId}>`;
                 }
                 catch (error) {
@@ -125,7 +125,7 @@ const setupserverCommand: CommandInterface = {
             }
             if (memberRoleInfo) {
                 try {
-                    const memberRole = await createGuildRole(prisma, guild, UserRoleType.GuildMember, memberRoleInfo);
+                    const memberRole = await databaseHelper.createGuildRole(prisma, guild, UserRoleType.GuildMember, memberRoleInfo);
                     message += `- Member role: <@&${memberRole.discordId}>`;
                 }
                 catch (error) {
@@ -156,37 +156,6 @@ const setupserverCommand: CommandInterface = {
 			gameGuilds.map(guild => ({ name: guild.game.name, value: guild.game.id })),
 		);
     },
-}
-
-/**
- * Create a UserRole object for the guild
- * @param prisma Prisma Client to talk to database
- * @param guild guild information
- * @param roleType type to assign
- * @param roleInfo discord role information
- * @returns UserRole object
- */
-async function createGuildRole(prisma: PrismaClient, guild: Guild, roleType: UserRoleType, roleInfo: Role | APIRole) {
-    return await prisma.userRole.upsert({
-        create: {
-            name: roleInfo.name,
-            serverId: guild.serverId,
-            guildId: guild.id,
-            roleType: roleType,
-            discordId: roleInfo.id
-        },
-        where: {
-            roleType_serverId_guildId: {
-                roleType: roleType,
-                serverId: guild.serverId,
-                guildId: guild.id
-            }
-        },
-        update: {
-            name: roleInfo.name,
-            discordId: roleInfo.id
-        }
-    });
 }
 
 export = setupserverCommand;
