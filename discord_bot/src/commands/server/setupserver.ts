@@ -3,7 +3,6 @@ import { CommandInterface, GetCommandInfo } from "../../CommandInterface";
 import { UserRoleType } from "../../DatabaseHelper";
 
 const options = {
-    ownerRole: 'ownerrole',
     adminRole: 'adminrole'
 }
 

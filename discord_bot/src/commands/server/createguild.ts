@@ -106,7 +106,7 @@ const setupserverCommand: CommandInterface = {
             if (leadRoleInfo) {
                 try {
                     const leadRole = await databaseHelper.createGuildRole(prisma, guild, UserRoleType.GuildLead, leadRoleInfo);
-                    message += `- Lead role: <@&${leadRole.discordId}>`;
+                    message += `- Lead role: <@&${leadRole.discordId}>\n`;
                 }
                 catch (error) {
                     errorMessage += `- Could not add lead role. Has this role already been used?\n`;
@@ -116,7 +116,7 @@ const setupserverCommand: CommandInterface = {
             if (managementRoleInfo) {
                 try {
                     const managementRole = await databaseHelper.createGuildRole(prisma, guild, UserRoleType.GuildManagement, managementRoleInfo);
-                    message += `- Management role: <@&${managementRole.discordId}>`;
+                    message += `- Management role: <@&${managementRole.discordId}>\n`;
                 }
                 catch (error) {
                     errorMessage += `- Could not add management role. Has this role already been used?\n`;
@@ -126,7 +126,7 @@ const setupserverCommand: CommandInterface = {
             if (memberRoleInfo) {
                 try {
                     const memberRole = await databaseHelper.createGuildRole(prisma, guild, UserRoleType.GuildMember, memberRoleInfo);
-                    message += `- Member role: <@&${memberRole.discordId}>`;
+                    message += `- Member role: <@&${memberRole.discordId}>\n`;
                 }
                 catch (error) {
                     errorMessage += `- Could not add member role. Has this role already been used?\n`;

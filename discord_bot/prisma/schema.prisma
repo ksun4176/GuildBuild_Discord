@@ -7,6 +7,35 @@ datasource db {
   url      = env("DB_URL")
 }
 
+// Purpose of a channel
+model ChannelPurpose {
+  id        Int                 @id @default(autoincrement())
+  // discord ID linked to channel
+  discordId String              @map("discord_id") @db.VarChar(255)
+  // foreign key to type of channel purpose
+  roleType  Int                 @map("role_type")
+  type      ChannelPurposeType  @relation(fields: [roleType], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "channel_purpose_type_fk")
+  // foreign key to server channel belongs to
+  serverId  Int                 @map("server_id")
+  server    Server              @relation(fields: [serverId], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "channel_purpose_server_fk")
+  // foreign key to guild channel belongs to
+  guildId   Int?                @map("guild_id")
+  guild     Guild?              @relation(fields: [guildId], references: [id], onDelete: SetNull, onUpdate: Cascade, map: "channel_purpose_guild_fk")
+
+  @@map("Channel_Purpose")
+}
+
+// Purposes for a channel to have
+model ChannelPurposeType {
+  id    Int    @id @default(autoincrement())
+  // name of channel purpose type
+  name  String @db.VarChar(255)
+  // all channels that map to the type
+  roles ChannelPurpose[]
+
+  @@map("Channel_Purpose_Type")
+}
+
 // Information about the game the guild is for
 model Game {
   id     Int    @id @default(autoincrement())
@@ -35,6 +64,8 @@ model Guild {
   roles      UserRole[]
   // who applied to this guild
   applicants GuildApplicant[]
+  // channels that belong to the guild
+  channels ChannelPurpose[]
 
   @@unique([gameId, guildId, serverId], map: "uc_guild")
 }
@@ -73,6 +104,8 @@ model Server {
   roles      UserRole[]
   // who applied to this guild
   applicants GuildApplicant[]
+  // channels that belong to the server
+  channels ChannelPurpose[]
 }
 
 // Information about a user
