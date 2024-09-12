@@ -84,6 +84,7 @@ const guildMemberUpdateEvent: EventInterface<Events.GuildMemberUpdate> = {
                         role: { OR: sharedRolesToRemove }
                     }
                 });
+                newMember.roles.remove(sharedRolesToRemove.filter(role => !!role.discordId).map(role => role.discordId!));
             }
 
             // add roles from shared guild
@@ -111,6 +112,7 @@ const guildMemberUpdateEvent: EventInterface<Events.GuildMemberUpdate> = {
                 await prisma.userRelation.createMany( {
                     data: sharedRolesToAdd.map(role => { return { userId: user.id, roleId: role.id } })
                 });
+                newMember.roles.add(sharedRolesToAdd.filter(role => !!role.discordId).map(role => role.discordId!));
             }
             
             const currentRelationsEnd = await prisma.userRelation.findMany({ 
