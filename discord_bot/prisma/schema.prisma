@@ -9,19 +9,20 @@ datasource db {
 
 // Purpose of a channel
 model ChannelPurpose {
-  id        Int                 @id @default(autoincrement())
+  id          Int                @id @default(autoincrement())
   // discord ID linked to channel
-  discordId String              @map("discord_id") @db.VarChar(255)
+  discordId   String             @map("discord_id") @db.VarChar(255)
   // foreign key to type of channel purpose
-  roleType  Int                 @map("role_type")
-  type      ChannelPurposeType  @relation(fields: [roleType], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "channel_purpose_type_fk")
+  channelType Int                @map("channel_type")
+  type        ChannelPurposeType @relation(fields: [channelType], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "channel_purpose_type_fk")
   // foreign key to server channel belongs to
-  serverId  Int                 @map("server_id")
-  server    Server              @relation(fields: [serverId], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "channel_purpose_server_fk")
+  serverId    Int                @map("server_id")
+  server      Server             @relation(fields: [serverId], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "channel_purpose_server_fk")
   // foreign key to guild channel belongs to
-  guildId   Int?                @map("guild_id")
-  guild     Guild?              @relation(fields: [guildId], references: [id], onDelete: SetNull, onUpdate: Cascade, map: "channel_purpose_guild_fk")
+  guildId     Int?               @map("guild_id")
+  guild       Guild?             @relation(fields: [guildId], references: [id], onDelete: SetNull, onUpdate: Cascade, map: "channel_purpose_guild_fk")
 
+  @@unique([channelType, serverId, guildId], map: "uc_channel_purpose")
   @@map("Channel_Purpose")
 }
 
@@ -43,6 +44,10 @@ model Game {
   name   String @db.VarChar(255) @unique(map: "uc_game")
   // all guilds related to game
   guilds Guild[]
+  // all applicants to this game
+  applicants GuildApplicant[]
+  // application content
+  applications GuildApplication[]
 }
 
 // Information about the guild/team.
@@ -81,12 +86,29 @@ model GuildApplicant {
   guild    Guild  @relation(fields: [guildId], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "guild_applicant_guild_fk")
   // foreign key to game user applied to
   gameId   Int    @map("game_id")
+  game     Game   @relation(fields: [gameId], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "guild_applicant_game_fk")
   // foreign key to server user applied to
   serverId Int    @map("server_id")
   server   Server @relation(fields: [serverId], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "guild_applicant_server_fk")
 
   @@unique([userId, gameId, serverId], map: "uc_guild_applicant")
   @@map("Guild_Applicant")
+}
+
+// Guild Application content
+model GuildApplication {
+  id       Int    @id @default(autoincrement())
+  // discord ID linked to channel
+  text     String @db.LongText
+  // foreign key to server application belongs to
+  serverId Int    @map("server_id")
+  server   Server @relation(fields: [serverId], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "guild_application_server_fk")
+  // foreign key to game application belongs to
+  gameId   Int    @map("game_id")
+  game     Game   @relation(fields: [gameId], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "guild_application_game_fk")
+
+  @@unique([serverId, gameId], map: "uc_guild_application")
+  @@map("Guild_Application")
 }
 
 // Information about the server/community
@@ -104,6 +126,8 @@ model Server {
   roles      UserRole[]
   // who applied to this guild
   applicants GuildApplicant[]
+  // application content
+  applications GuildApplication[]
   // channels that belong to the server
   channels ChannelPurpose[]
 }

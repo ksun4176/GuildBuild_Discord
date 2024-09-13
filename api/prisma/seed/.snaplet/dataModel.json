@@ -6,6 +6,20 @@
       "tableName": "Channel_Purpose",
       "fields": [
         {
+          "id": "GuildBuild.Channel_Purpose.channel_type",
+          "name": "channel_type",
+          "columnName": "channel_type",
+          "type": "int",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false,
+          "maxLength": null
+        },
+        {
           "id": "GuildBuild.Channel_Purpose.discord_id",
           "name": "discord_id",
           "columnName": "discord_id",
@@ -52,20 +66,6 @@
           "maxLength": null
         },
         {
-          "id": "GuildBuild.Channel_Purpose.role_type",
-          "name": "role_type",
-          "columnName": "role_type",
-          "type": "int",
-          "isRequired": true,
-          "kind": "scalar",
-          "isList": false,
-          "isGenerated": false,
-          "sequence": false,
-          "hasDefaultValue": false,
-          "isId": false,
-          "maxLength": null
-        },
-        {
           "id": "GuildBuild.Channel_Purpose.server_id",
           "name": "server_id",
           "columnName": "server_id",
@@ -86,7 +86,7 @@
           "kind": "object",
           "relationName": "Channel_PurposeToChannel_Purpose_Type",
           "relationFromFields": [
-            "role_type"
+            "channel_type"
           ],
           "relationToFields": [
             "id"
@@ -139,6 +139,14 @@
           "name": "GuildBuild.Channel_Purpose.id",
           "fields": [
             "id"
+          ]
+        },
+        {
+          "name": "GuildBuild.Channel_Purpose.channel_type_server_id_guild_id",
+          "fields": [
+            "channel_type",
+            "server_id",
+            "guild_id"
           ]
         }
       ]
@@ -247,6 +255,34 @@
           "isRequired": false,
           "kind": "object",
           "relationName": "GuildToGame",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isList": true,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        },
+        {
+          "name": "Guild_Applicant",
+          "type": "Guild_Applicant",
+          "isRequired": false,
+          "kind": "object",
+          "relationName": "Guild_ApplicantToGame",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isList": true,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        },
+        {
+          "name": "Guild_Application",
+          "type": "Guild_Application",
+          "isRequired": false,
+          "kind": "object",
+          "relationName": "Guild_ApplicationToGame",
           "relationFromFields": [],
           "relationToFields": [],
           "isList": true,
@@ -540,6 +576,24 @@
           "maxLength": null
         },
         {
+          "name": "Game",
+          "type": "Game",
+          "isRequired": true,
+          "kind": "object",
+          "relationName": "Guild_ApplicantToGame",
+          "relationFromFields": [
+            "game_id"
+          ],
+          "relationToFields": [
+            "id"
+          ],
+          "isList": false,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        },
+        {
           "name": "Guild",
           "type": "Guild",
           "isRequired": true,
@@ -607,6 +661,124 @@
             "user_id",
             "game_id",
             "server_id"
+          ]
+        }
+      ]
+    },
+    "Guild_Application": {
+      "id": "GuildBuild.Guild_Application",
+      "schemaName": "GuildBuild",
+      "tableName": "Guild_Application",
+      "fields": [
+        {
+          "id": "GuildBuild.Guild_Application.game_id",
+          "name": "game_id",
+          "columnName": "game_id",
+          "type": "int",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false,
+          "maxLength": null
+        },
+        {
+          "id": "GuildBuild.Guild_Application.id",
+          "name": "id",
+          "columnName": "id",
+          "type": "int",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": {
+            "identifier": "GuildBuild.Guild_Application.id",
+            "increment": 1,
+            "start": 1
+          },
+          "hasDefaultValue": false,
+          "isId": true,
+          "maxLength": null
+        },
+        {
+          "id": "GuildBuild.Guild_Application.server_id",
+          "name": "server_id",
+          "columnName": "server_id",
+          "type": "int",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false,
+          "maxLength": null
+        },
+        {
+          "id": "GuildBuild.Guild_Application.text",
+          "name": "text",
+          "columnName": "text",
+          "type": "longtext",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false,
+          "maxLength": 4294967295
+        },
+        {
+          "name": "Game",
+          "type": "Game",
+          "isRequired": true,
+          "kind": "object",
+          "relationName": "Guild_ApplicationToGame",
+          "relationFromFields": [
+            "game_id"
+          ],
+          "relationToFields": [
+            "id"
+          ],
+          "isList": false,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        },
+        {
+          "name": "Server",
+          "type": "Server",
+          "isRequired": true,
+          "kind": "object",
+          "relationName": "Guild_ApplicationToServer",
+          "relationFromFields": [
+            "server_id"
+          ],
+          "relationToFields": [
+            "id"
+          ],
+          "isList": false,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        }
+      ],
+      "uniqueConstraints": [
+        {
+          "name": "GuildBuild.Guild_Application.id",
+          "fields": [
+            "id"
+          ]
+        },
+        {
+          "name": "GuildBuild.Guild_Application.server_id_game_id",
+          "fields": [
+            "server_id",
+            "game_id"
           ]
         }
       ]
@@ -710,6 +882,20 @@
           "isRequired": false,
           "kind": "object",
           "relationName": "Guild_ApplicantToServer",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isList": true,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        },
+        {
+          "name": "Guild_Application",
+          "type": "Guild_Application",
+          "isRequired": false,
+          "kind": "object",
+          "relationName": "Guild_ApplicationToServer",
           "relationFromFields": [],
           "relationToFields": [],
           "isList": true,

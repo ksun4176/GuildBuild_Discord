@@ -10,7 +10,7 @@ const options = {
     memberrole: 'memberrole'
 }
 
-const setupserverCommand: CommandInterface = {
+const addgameCommand: CommandInterface = {
     data: new SlashCommandBuilder()
         .setName('addgame')
         .setDescription('Add a game to the server')
@@ -114,4 +114,4 @@ const setupserverCommand: CommandInterface = {
     },
 }
 
-export = setupserverCommand;
+export = addgameCommand;

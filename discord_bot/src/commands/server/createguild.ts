@@ -12,7 +12,7 @@ const options = {
     memberrole: 'memberrole'
 }
 
-const setupserverCommand: CommandInterface = {
+const createguildCommand: CommandInterface = {
     data: new SlashCommandBuilder()
         .setName('createguild')
         .setDescription('Create (or update) a guild in the server')
@@ -158,4 +158,4 @@ const setupserverCommand: CommandInterface = {
     },
 }
 
-export = setupserverCommand;
+export = createguildCommand;
