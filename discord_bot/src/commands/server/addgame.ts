@@ -41,7 +41,7 @@ const addgameCommand: CommandInterface = {
         await interaction.deferReply();
         const serverInfo = interaction.guild;
 
-        const gameId = interaction.options.getInteger(options.game);
+        const gameId = interaction.options.getInteger(options.game)!;
         const leadRoleInfo = interaction.options.getRole(options.leadrole);
         const managementRoleInfo = interaction.options.getRole(options.managementrole);
         const memberRoleInfo = interaction.options.getRole(options.memberrole);
@@ -61,7 +61,7 @@ const addgameCommand: CommandInterface = {
                 return;
             }
 
-            const gamePlaceholderGuild = await databaseHelper.createPlaceholderGuild(gameId!, server.id);
+            const gamePlaceholderGuild = await databaseHelper.createPlaceholderGuild(gameId, server.id);
 
             let message = `Game '${gamePlaceholderGuild.game.name}' is added to the server '${server.name}'\n`;
             if (leadRoleInfo) {

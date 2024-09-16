@@ -93,6 +93,16 @@ export class DatabaseHelper {
         });
     }
 
+    /**
+         * Add the criteria that will let us know if a guild is a placeholder guild that signals a server supports a game
+         * @param whereInput the input to be added to
+         * @param inverse whether to inverse the criteria
+         * @returns the updated input
+         */
+    public addPlaceholderCriteria(whereInput: Prisma.GuildWhereInput, inverse?: boolean) {
+        whereInput.guildId = inverse ? {not: ''} : '';
+        return whereInput;
+    }
     
     /**
      * Create a UserRole object for the guild

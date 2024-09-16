@@ -53,9 +53,9 @@ const createguildCommand: CommandInterface = {
         await interaction.deferReply();
         const serverInfo = interaction.guild;
         
-        const gameId = interaction.options.getInteger(options.game);
-        const inGameId = interaction.options.getString(options.ingameid);
-        const name = interaction.options.getString(options.name);
+        const gameId = interaction.options.getInteger(options.game)!;
+        const inGameId = interaction.options.getString(options.ingameid)!;
+        const name = interaction.options.getString(options.name)!;
         const leadRoleInfo = interaction.options.getRole(options.leadrole);
         const managementRoleInfo = interaction.options.getRole(options.managementrole);
         const memberRoleInfo = interaction.options.getRole(options.memberrole);
@@ -78,21 +78,21 @@ const createguildCommand: CommandInterface = {
             // create guild object
             const guild = await prisma.guild.upsert({
                 create: {
-                    name: name!,
+                    name: name,
                     serverId: server.id,
-                    gameId: gameId!,
-                    guildId: inGameId!
+                    gameId: gameId,
+                    guildId: inGameId
                 },
                 where: {
                     gameId_guildId_serverId: {
                         serverId: server.id,
-                        gameId: gameId!,
-                        guildId: inGameId!
+                        gameId: gameId,
+                        guildId: inGameId
                     }
                 },
                 update: {
                     active: true,
-                    name: name!
+                    name: name
                 },
                 include: {
                     game: true
