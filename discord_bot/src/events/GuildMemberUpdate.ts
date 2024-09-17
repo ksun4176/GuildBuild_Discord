@@ -37,7 +37,7 @@ const guildMemberUpdateEvent: EventInterface<Events.GuildMemberUpdate> = {
                 where: { OR: rolesCriteria }
             });
             const currentRelations = await prisma.userRelation.findMany({ 
-                where: { 
+                where: {
                     user: user,
                     role: { server: server }
                 }

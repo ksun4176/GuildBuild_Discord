@@ -106,11 +106,16 @@ const addgameCommand: CommandInterface = {
     },
 
     async autocomplete(interaction: AutocompleteInteraction) {
-        const { prisma } = await GetCommandInfo(interaction.user);
-        const games = await prisma.game.findMany();
-		await interaction.respond(
-			games.map(game => ({ name: game.name, value: game.id })),
-		);
+        try {
+            const { prisma } = await GetCommandInfo(interaction.user);
+            const games = await prisma.game.findMany();
+            await interaction.respond(
+                games.map(game => ({ name: game.name, value: game.id })),
+            );
+        }
+        catch (error) {
+            console.log(error);
+        }
     },
 }
 

@@ -149,12 +149,17 @@ const createguildCommand: CommandInterface = {
         }
         const serverInfo = interaction.guild;
         
-        const { prisma, databaseHelper } = await GetCommandInfo(interaction.user);
-        const server = await prisma.server.findUniqueOrThrow({ where: {discordId: serverInfo.id } });
-        const gameGuilds = await databaseHelper.getPlaceholderGuilds(server.id);
-		await interaction.respond(
-			gameGuilds.map(guild => ({ name: guild.game.name, value: guild.game.id })),
-		);
+        try {
+            const { prisma, databaseHelper } = await GetCommandInfo(interaction.user);
+            const server = await prisma.server.findUniqueOrThrow({ where: {discordId: serverInfo.id } });
+            const gameGuilds = await databaseHelper.getPlaceholderGuilds(server.id);
+            await interaction.respond(
+                gameGuilds.map(guild => ({ name: guild.game.name, value: guild.game.id })),
+            );
+        }
+        catch (error) {
+            console.log(error);
+        }
     },
 }
 

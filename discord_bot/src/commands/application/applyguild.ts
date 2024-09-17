@@ -36,7 +36,7 @@ const applyguildCommand: CommandInterface = {
         try {
             const { prisma, caller, databaseHelper } = await GetCommandInfo(interaction.user);
 
-            const server = await prisma.server.findUniqueOrThrow({ where: {discordId: serverInfo.id } });
+            const server = await prisma.server.findUniqueOrThrow({ where: { discordId: serverInfo.id } });
 
             if (!guildId) {
                 const placeholderGuilds = await databaseHelper.getPlaceholderGuilds(server.id);
@@ -49,7 +49,7 @@ const applyguildCommand: CommandInterface = {
             if (!guildId) {
                 throw new Error('Game not supported in server');
             }
-            prisma.guildApplicant.create({
+            await prisma.guildApplicant.create({
                 data: {
                     userId: caller.id,
                     guildId: guildId,
@@ -71,31 +71,37 @@ const applyguildCommand: CommandInterface = {
             return;
         }
         const serverInfo = interaction.guild;
-        const { prisma, databaseHelper } = await GetCommandInfo(interaction.user);
-        const server = await prisma.server.findUniqueOrThrow({ where: {discordId: serverInfo.id } });
-
         const focusedOption = interaction.options.getFocused(true);
-        
-        if (focusedOption.name === options.game) {
-            const gameGuilds = await databaseHelper.getPlaceholderGuilds(server.id);
-            await interaction.respond(
-                gameGuilds.map(guild => ({ name: guild.game.name, value: guild.game.id }))
-            );
-        }
-        else if (focusedOption.name === options.guild) {
-            const gameId = interaction.options.getInteger(options.game)!;
-            let criteria: Prisma.GuildWhereInput = {
-                server: server,
-                gameId: gameId,
-                active: true
+        try {
+            const { prisma, databaseHelper } = await GetCommandInfo(interaction.user);
+            const server = await prisma.server.findUniqueOrThrow({ where: {discordId: serverInfo.id } });
+
+            switch (focusedOption.name) {
+                case options.game:
+                    const gameGuilds = await databaseHelper.getPlaceholderGuilds(server.id);
+                    await interaction.respond(
+                        gameGuilds.map(guild => ({ name: guild.game.name, value: guild.game.id }))
+                    );
+                    break;
+                case options.guild:
+                    const gameId = interaction.options.getInteger(options.game)!;
+                    let criteria: Prisma.GuildWhereInput = {
+                        server: server,
+                        gameId: gameId,
+                        active: true
+                    }
+                    databaseHelper.addPlaceholderCriteria(criteria, true);
+                    const guilds = await prisma.guild.findMany({
+                        where: criteria
+                    });
+                    await interaction.respond(
+                        guilds.map(guild => ({ name: guild.name, value: guild.id }))
+                    );
+                    break;
             }
-            databaseHelper.addPlaceholderCriteria(criteria, true);
-            const guilds = await prisma.guild.findMany({
-                where: criteria
-            });
-            await interaction.respond(
-                guilds.map(guild => ({ name: guild.name, value: guild.id }))
-            );
+        }
+        catch (error) {
+            console.log(error);
         }
     },
 }
