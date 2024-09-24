@@ -106,14 +106,13 @@ export class DatabaseHelper {
     
     /**
      * Create a UserRole object for the guild
-     * @param prisma Prisma Client to talk to database
      * @param guild guild information
      * @param roleType type to assign
      * @param roleInfo discord role information
      * @returns UserRole object
      */
-    public async createGuildRole(prisma: PrismaClient, guild: Guild, roleType: UserRoleType, roleInfo: Role | APIRole) {
-        return await prisma.userRole.upsert({
+    public async createGuildRole(guild: Guild, roleType: UserRoleType, roleInfo: Role | APIRole) {
+        return await this.__prisma.userRole.upsert({
             create: {
                 name: roleInfo.name,
                 serverId: guild.serverId,
@@ -131,6 +130,55 @@ export class DatabaseHelper {
             update: {
                 name: roleInfo.name,
                 discordId: roleInfo.id
+            }
+        });
+    }
+
+    /**
+     * Get the user role for the guild
+     * @param guild Guild to role for
+     * @param roleType Role type
+     * @returns user role if found
+     */
+    public async getGuildRole(guild: Guild, roleType: UserRoleType) {
+        return await this.__prisma.userRole.findUnique({ 
+            where: {
+                roleType_serverId_guildId: {
+                    roleType: roleType,
+                    serverId: guild.serverId,
+                    guildId: guild.id
+                }
+            }
+        });
+    }
+
+    /**
+     * Get the user role for the shared guild
+     * @param guild Original guild to see if there is a shared guild
+     * @param roleType Role type
+     * @returns user role if found
+     */
+    public async getSharedGuildRole(guild: Guild, roleType: UserRoleType) {
+        const gameGuild = await this.__prisma.guild.findUnique({
+            where: {
+                gameId_guildId_serverId: {
+                    gameId: guild.gameId,
+                    guildId: '',
+                    serverId: guild.serverId
+                },
+                active: true
+            }
+        });
+        if (!gameGuild) {
+            return null;
+        }
+        return await this.__prisma.userRole.findUnique({ 
+            where: {
+                roleType_serverId_guildId: {
+                    roleType: roleType,
+                    serverId: gameGuild.serverId,
+                    guildId: gameGuild.id
+                }
             }
         });
     }

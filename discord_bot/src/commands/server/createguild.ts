@@ -105,7 +105,7 @@ const createguildCommand: CommandInterface = {
             
             if (leadRoleInfo) {
                 try {
-                    const leadRole = await databaseHelper.createGuildRole(prisma, guild, UserRoleType.GuildLead, leadRoleInfo);
+                    const leadRole = await databaseHelper.createGuildRole(guild, UserRoleType.GuildLead, leadRoleInfo);
                     message += `- Lead role: <@&${leadRole.discordId}>\n`;
                 }
                 catch (error) {
@@ -115,7 +115,7 @@ const createguildCommand: CommandInterface = {
             }
             if (managementRoleInfo) {
                 try {
-                    const managementRole = await databaseHelper.createGuildRole(prisma, guild, UserRoleType.GuildManagement, managementRoleInfo);
+                    const managementRole = await databaseHelper.createGuildRole(guild, UserRoleType.GuildManagement, managementRoleInfo);
                     message += `- Management role: <@&${managementRole.discordId}>\n`;
                 }
                 catch (error) {
@@ -125,7 +125,7 @@ const createguildCommand: CommandInterface = {
             }
             if (memberRoleInfo) {
                 try {
-                    const memberRole = await databaseHelper.createGuildRole(prisma, guild, UserRoleType.GuildMember, memberRoleInfo);
+                    const memberRole = await databaseHelper.createGuildRole(guild, UserRoleType.GuildMember, memberRoleInfo);
                     message += `- Member role: <@&${memberRole.discordId}>\n`;
                 }
                 catch (error) {

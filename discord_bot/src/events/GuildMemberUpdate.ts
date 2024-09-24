@@ -1,6 +1,7 @@
 import { Events, GuildMember, PartialGuildMember } from "discord.js";
 import { EventInterface, GetEventInfo } from "../EventInterface";
 import { UserRoleType } from "../DatabaseHelper";
+import { UserRole } from "@prisma/client";
 
 const guildMemberUpdateEvent: EventInterface<Events.GuildMemberUpdate> = {
     name: Events.GuildMemberUpdate,
@@ -55,22 +56,30 @@ const guildMemberUpdateEvent: EventInterface<Events.GuildMemberUpdate> = {
             }
 
             const placeholderGuilds = await databaseHelper.getPlaceholderGuilds(server.id);
-            const placeholderGuildsIds = placeholderGuilds.map(guild => guild.id);
-            const currentRelationsShared = await prisma.userRelation.findMany({
+            const userGuildRelations = await prisma.userRelation.findMany({
                 where: { 
                     user: user,
-                    role: { server: server }
+                    role: {
+                        OR: [
+                            UserRoleType.GuildLead,
+                            UserRoleType.GuildManagement,
+                            UserRoleType.GuildMember   
+                        ].map(roleType => { return { roleType: roleType, server: server }; })
+                    }
                 },
                 include: { role: { include: { guild: true } } }
             });
-            const guildRoles = currentRelationsShared
-                .filter(relation =>
-                    !!relation.role.roleType &&
-                        [UserRoleType.GuildLead, UserRoleType.GuildManagement, UserRoleType.GuildMember].indexOf(relation.role.roleType) >= 0
-                )
-                .map(relation => relation.role);
-            let sharedRoles = guildRoles.filter(role => placeholderGuildsIds.indexOf(role.guildId!) >= 0);
-            let notSharedRoles = guildRoles.filter(role => placeholderGuildsIds.indexOf(role.guildId!) < 0);
+            const guildRoles = userGuildRelations.map(relation => relation.role);
+            let sharedRoles: typeof guildRoles = [];
+            let notSharedRoles: typeof guildRoles = [];
+            for (let role of guildRoles) {
+                if (placeholderGuilds.findIndex(guild => guild.id === role.guildId) >= 0) {
+                    sharedRoles.push(role);
+                }
+                else {
+                    notSharedRoles.push(role);
+                }
+            };
             // remove roles from shared guild
             const sharedRolesToRemove = sharedRoles.filter(role =>
                 notSharedRoles.filter(nRole => {
@@ -88,26 +97,14 @@ const guildMemberUpdateEvent: EventInterface<Events.GuildMemberUpdate> = {
             }
 
             // add roles from shared guild
-            const rolesToAddCriteria = notSharedRoles
-                .filter(nRole =>
-                    sharedRoles.filter(role => {
-                        role.roleType === nRole.roleType && role.guild?.gameId === nRole.guild?.gameId
-                    }).length === 0
-                )
-                .map(role => {
-                    const guild = placeholderGuilds.find(guild => guild.gameId === role.guild?.gameId);
-                    if (!guild) { return; }
-                    return {
-                        roleType: role.roleType,
-                        serverId: role.serverId,
-                        guildId: guild.id
-                    };
-                })
-                .filter(role => !!role); // filter out blanks
-            const sharedRolesToAdd = await prisma.userRole.findMany({ 
-                where: { OR: rolesToAddCriteria },
-                include: { guild: true }
-            });
+            const sharedRolesToAdd: UserRole[] = [];
+            for (let role of notSharedRoles) {
+                const sharedRole = await databaseHelper.getSharedGuildRole(role.guild!, role.roleType!);
+                // found shared role and user don't already have it
+                if (sharedRole && sharedRoles.findIndex(sRole => sRole.id === sharedRole.id) < 0) {
+                    sharedRolesToAdd.push(sharedRole);
+                }
+            }
             if (sharedRolesToAdd.length > 0) {
                 await prisma.userRelation.createMany( {
                     data: sharedRolesToAdd.map(role => { return { userId: user.id, roleId: role.id } })

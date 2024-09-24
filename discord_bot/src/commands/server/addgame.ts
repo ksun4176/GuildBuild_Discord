@@ -66,7 +66,7 @@ const addgameCommand: CommandInterface = {
             let message = `Game '${gamePlaceholderGuild.game.name}' is added to the server '${server.name}'\n`;
             if (leadRoleInfo) {
                 try {
-                    const leadRole = await databaseHelper.createGuildRole(prisma, gamePlaceholderGuild, UserRoleType.GuildLead, leadRoleInfo);
+                    const leadRole = await databaseHelper.createGuildRole(gamePlaceholderGuild, UserRoleType.GuildLead, leadRoleInfo);
                     message += `- Lead role: <@&${leadRole.discordId}>\n`;
                 }
                 catch (error) {
@@ -76,7 +76,7 @@ const addgameCommand: CommandInterface = {
             }
             if (managementRoleInfo) {
                 try {
-                    const managementRole = await databaseHelper.createGuildRole(prisma, gamePlaceholderGuild, UserRoleType.GuildManagement, managementRoleInfo);
+                    const managementRole = await databaseHelper.createGuildRole(gamePlaceholderGuild, UserRoleType.GuildManagement, managementRoleInfo);
                     message += `- Management role: <@&${managementRole.discordId}>\n`;
                 }
                 catch (error) {
@@ -86,7 +86,7 @@ const addgameCommand: CommandInterface = {
             }
             if (memberRoleInfo) {
                 try {
-                    const memberRole = await databaseHelper.createGuildRole(prisma, gamePlaceholderGuild, UserRoleType.GuildMember, memberRoleInfo);
+                    const memberRole = await databaseHelper.createGuildRole(gamePlaceholderGuild, UserRoleType.GuildMember, memberRoleInfo);
                     message += `- Member role: <@&${memberRole.discordId}>\n`;
                 }
                 catch (error) {
