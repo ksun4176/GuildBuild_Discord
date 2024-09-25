@@ -19,6 +19,7 @@ const client: Client = new Client({ intents: [
     IntentsBitField.Flags.GuildMessageReactions,
     IntentsBitField.Flags.DirectMessages,
     IntentsBitField.Flags.DirectMessageReactions,
+    IntentsBitField.Flags.MessageContent
 ] });
 
 // add all commands to be handled

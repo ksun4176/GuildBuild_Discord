@@ -82,18 +82,17 @@ const appActionCommands: CommandInterface = {
                     }
                 }
             });
-
-            let message = 'No action done';
             switch (subcommand) {
                 case subcommands.accept:
-                    message = await acceptAction(interaction, user, guild, prisma, caller, databaseHelper, application);
+                    await acceptAction(interaction, user, guild, prisma, caller, databaseHelper, application);
                     break;
                 case subcommands.decline:
-                    message = await declineAction(server, prisma, caller, databaseHelper, application);
+                    await declineAction(interaction, server, prisma, caller, databaseHelper, application);
+                    break;
+                default:
+                    await interaction.editReply('No action done');
                     break;
             }
-            console.log(message);
-            await interaction.editReply(message);
         }
         catch (error) {
             console.error(error);
@@ -161,7 +160,7 @@ const acceptAction = async function(
     caller: User,
     databaseHelper: DatabaseHelper,
     application: GuildApplicant | null
-): Promise<string> {
+): Promise<boolean> {
     // check if server owner OR admin OR guild management
     let roles: Prisma.UserRoleWhereInput[] = [
         { serverId: guild.serverId, roleType: UserRoleType.ServerOwner },
@@ -171,7 +170,8 @@ const acceptAction = async function(
     ]
     let hasPermission = await databaseHelper.userHasPermission(caller.id, roles);
     if (!hasPermission) {
-        return 'You do not have permission to run this command';
+        interaction.editReply('You do not have permission to run this command');
+        return false;
     }
     // get current roles
     const currentRelations = await prisma.userRelation.findMany({ 
@@ -210,25 +210,57 @@ const acceptAction = async function(
     // check what guilds user is currently in so user can clean them up if need be
     const currentGuilds = currentRelations.filter(relation => {
         return relation.role.roleType === UserRoleType.GuildMember &&
-            relation.role.id !== guildRole?.id &&
             relation.role.id !== sharedGuildRole?.id &&
             relation.role.guild?.gameId === guild.gameId;
     });
     let message = `'${user.name}' was accepted into '${guild.name}'\n`;
+    console.log(message);
+    await interaction.editReply(message);
     if (currentGuilds.length > 0) {
-        message += `They are also already in these guilds (remove old roles if need be):\n`;
-        for (let relation of currentGuilds) {
-            message += `- '${relation.role.guild!.name}' <@&${relation.role.discordId}>\n`;
+        // Cannot handle transfers in this command without looking at message content
+        if (interaction.channel) {
+            message += `Is this a guild transfer? Respond with Yes if you want to remove these other guild roles:\n`;
+            for (let relation of currentGuilds) {
+                message += `- <@&${relation.role.discordId}> for '${relation.role.guild!.name}'\n`;
+            }
+            await interaction.editReply(message);
+            const confirmMessages = await interaction.channel.awaitMessages({
+                filter: message => message.author.id === caller.discordId,
+                max: 1,
+                time: 10000,
+            });
+            const removeOldRoles = confirmMessages.first()!.content.toLowerCase();
+            let followUpMessage = '';
+            if (removeOldRoles === 'yes' || removeOldRoles === 'y') {
+                await prisma.userRelation.deleteMany({ 
+                    where: { OR: currentGuilds.map(relation => { return { id: relation.id } }) }
+                });
+                if (user.discordId) {
+                    const discordUser = await interaction.guild!.members.fetch(user.discordId);
+                    discordUser.roles.remove(currentGuilds.filter(relation => !!relation.role.discordId).map(relation => relation.role.discordId!));
+                }
+                followUpMessage = 'Old guild roles have been removed.';
+            }
+            else {
+                followUpMessage = 'OK, user now belongs to multiple guilds.';
+            }
+            await interaction.followUp(followUpMessage);
+        }
+        else {
+            message += `They are also already in these guilds (remove old roles if need be):\n`;
+            for (let relation of currentGuilds) {
+                message += `- <@&${relation.role.discordId}> for '${relation.role.guild!.name}'\n`;
+            }
+            await interaction.editReply(message);
         }
     }
-    return message;
+    return true;
 }
 
 /**
- * 
+ * Decline a guild application
  * @param interaction The discord interaction
- * @param user The user to accept
- * @param guild The guild to be accepted into
+ * @param server The server application is in
  * @param prisma Prisma Client
  * @param caller The user who called this interaction
  * @param databaseHelper database helper
@@ -236,12 +268,13 @@ const acceptAction = async function(
  * @returns The response to display to user
  */
 const declineAction = async function(
+    interaction: ChatInputCommandInteraction,
     server: Server,
     prisma: PrismaClient,
     caller: User,
     databaseHelper: DatabaseHelper,
     application: GuildApplicant | null
-): Promise<string> {
+): Promise<boolean> {
     // check if server owner OR admin
     const roles: Prisma.UserRoleWhereInput[] = [
         { serverId: server.id, roleType: UserRoleType.ServerOwner },
@@ -249,16 +282,21 @@ const declineAction = async function(
     ]
     const hasPermission = await databaseHelper.userHasPermission(caller.id, roles);
     if (!hasPermission) {
-        return 'You do not have permission to run this command';
+        interaction.editReply('You do not have permission to run this command');
+        return false;
     }
     if (!application) {
-        return 'There is no open application';
+        interaction.editReply('There is no open application');
+        return false;
     }
     await prisma.guildApplicant.delete({
         where: { id: application.id },
     });
 
-    return 'Application was declined';
+    const message = 'Application was declined';
+    console.log(message);
+    await interaction.editReply(message);
+    return true;
 }
 export = appActionCommands;
 

@@ -14,15 +14,22 @@ const guildMemberUpdateEvent: EventInterface<Events.GuildMemberUpdate> = {
         try {
             const { prisma, databaseHelper } = await GetEventInfo();
             
-            // get user + server
+            // get user + server + current roles
             const user = await prisma.user.findUniqueOrThrow({ where: { discordId: newMember.id } });
             const server = await prisma.server.findUniqueOrThrow({ where: { discordId: newMember.guild.id } });
+            const currentRelations = await prisma.userRelation.findMany({ 
+                where: {
+                    user: user,
+                    role: { server: server }
+                }
+            });
 
             // remove roles
             let rolesCriteria = rolesRemoved.map(role => { return { discordId: role.id }; });
-            const rolesToRemove = await prisma.userRole.findMany({ 
+            let rolesToRemove = await prisma.userRole.findMany({ 
                 where: { OR: rolesCriteria }
             });
+            rolesToRemove = rolesToRemove.filter(role => currentRelations.findIndex(relation => relation.roleId === role.id) >= 0);
             if (rolesToRemove.length > 0) {
                 await prisma.userRelation.deleteMany({ 
                     where: { 
@@ -37,12 +44,6 @@ const guildMemberUpdateEvent: EventInterface<Events.GuildMemberUpdate> = {
             rolesCriteria = rolesAdded.map(role => { return { discordId: role.id }; });
             let rolesToAdd = await prisma.userRole.findMany({ 
                 where: { OR: rolesCriteria }
-            });
-            const currentRelations = await prisma.userRelation.findMany({ 
-                where: {
-                    user: user,
-                    role: { server: server }
-                }
             });
             rolesToAdd = rolesToAdd.filter(role => currentRelations.findIndex(relation => relation.roleId === role.id) < 0);
             if (rolesToAdd.length > 0) {
