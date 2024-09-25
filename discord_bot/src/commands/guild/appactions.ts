@@ -121,14 +121,13 @@ const appActionCommands: CommandInterface = {
                     break;
                 case options.guild:
                     const gameId = interaction.options.getInteger(options.game)!;
-                    let criteria: Prisma.GuildWhereInput = {
-                        server: server,
-                        gameId: gameId,
-                        active: true
-                    }
-                    databaseHelper.addPlaceholderCriteria(criteria, true);
                     const guilds = await prisma.guild.findMany({
-                        where: criteria
+                        where: {
+                            server: server,
+                            gameId: gameId,
+                            guildId: { not: '' },
+                            active: true   
+                        }
                     });
                     await interaction.respond(
                         guilds.map(guild => ({ name: guild.name, value: guild.id }))
@@ -174,15 +173,18 @@ const acceptAction = async function(
     if (!hasPermission) {
         return 'You do not have permission to run this command';
     }
-    const guildRole = await databaseHelper.getGuildRole(guild, UserRoleType.GuildMember);
-    const sharedGuildRole = await databaseHelper.getSharedGuildRole(guild, UserRoleType.GuildMember);
-    // get current roles to figure out what roles need to be added
+    // get current roles
     const currentRelations = await prisma.userRelation.findMany({ 
         where: { 
             user: user,
             role: { serverId: guild.serverId }
-        }
+        },
+        include: { role: { include: { guild: true } } }
     });
+
+    // check if roles are new and need to be added
+    const guildRole = await databaseHelper.getGuildRole(guild, UserRoleType.GuildMember);
+    const sharedGuildRole = await databaseHelper.getSharedGuildRole(guild, UserRoleType.GuildMember);
     const rolesToAdd: UserRole[] = [];
     if (guildRole && currentRelations.findIndex(relation => relation.roleId === guildRole.id) < 0) {
         rolesToAdd.push(guildRole);
@@ -205,7 +207,21 @@ const acceptAction = async function(
         });
     }
     
-    return `'${user.name}' was accepted into '${guild.name}'`;
+    // check what guilds user is currently in so user can clean them up if need be
+    const currentGuilds = currentRelations.filter(relation => {
+        return relation.role.roleType === UserRoleType.GuildMember &&
+            relation.role.id !== guildRole?.id &&
+            relation.role.id !== sharedGuildRole?.id &&
+            relation.role.guild?.gameId === guild.gameId;
+    });
+    let message = `'${user.name}' was accepted into '${guild.name}'\n`;
+    if (currentGuilds.length > 0) {
+        message += `They are also already in these guilds (remove old roles if need be):\n`;
+        for (let relation of currentGuilds) {
+            message += `- '${relation.role.guild!.name}' <@&${relation.role.discordId}>\n`;
+        }
+    }
+    return message;
 }
 
 /**

@@ -30,6 +30,7 @@ const guildMemberUpdateEvent: EventInterface<Events.GuildMemberUpdate> = {
                         role: { OR: rolesToRemove }
                     }
                 });
+                console.log(`roles removed: ${rolesToRemove.map(role => role.id)}`);
             }
 
             // add roles
@@ -43,18 +44,19 @@ const guildMemberUpdateEvent: EventInterface<Events.GuildMemberUpdate> = {
                     role: { server: server }
                 }
             });
-            const currentRolesIds = currentRelations.map(relation => relation.roleId);
-            rolesToAdd = rolesToAdd.filter(role => currentRolesIds.indexOf(role.id) < 0);
+            rolesToAdd = rolesToAdd.filter(role => currentRelations.findIndex(relation => relation.roleId === role.id) < 0);
             if (rolesToAdd.length > 0) {
                 await prisma.userRelation.createMany( {
                     data: rolesToAdd.map(role => { return { userId: user.id, roleId: role.id } })
                 });
+                console.log(`roles added: ${rolesToAdd.map(role => role.id)}`);
             }
 
             if (rolesToRemove.length === 0 && rolesToAdd.length === 0) {
                 return;
             }
 
+            // find all guild roles user has and divide it into actual guilds + shared guilds
             const placeholderGuilds = await databaseHelper.getPlaceholderGuilds(server.id);
             const userGuildRelations = await prisma.userRelation.findMany({
                 where: { 
@@ -80,12 +82,17 @@ const guildMemberUpdateEvent: EventInterface<Events.GuildMemberUpdate> = {
                     notSharedRoles.push(role);
                 }
             };
+
             // remove roles from shared guild
-            const sharedRolesToRemove = sharedRoles.filter(role =>
-                notSharedRoles.filter(nRole => {
-                    nRole.roleType === role.roleType && nRole.guild?.gameId === role.guild?.gameId
-                }).length === 0
-            );
+            const sharedRolesToRemove = sharedRoles.filter(role => {
+                for (let nRole of notSharedRoles) {
+                    if (nRole.roleType === role.roleType &&
+                        nRole.guild?.gameId === role.guild?.gameId) {
+                            return false;
+                        }
+                }
+                return true;
+            });
             if (sharedRolesToRemove.length > 0) {
                 await prisma.userRelation.deleteMany({ 
                     where: { 

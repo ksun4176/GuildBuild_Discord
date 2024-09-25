@@ -92,17 +92,6 @@ export class DatabaseHelper {
             }
         });
     }
-
-    /**
-         * Add the criteria that will let us know if a guild is a placeholder guild that signals a server supports a game
-         * @param whereInput the input to be added to
-         * @param inverse whether to inverse the criteria
-         * @returns the updated input
-         */
-    public addPlaceholderCriteria(whereInput: Prisma.GuildWhereInput, inverse?: boolean) {
-        whereInput.guildId = inverse ? {not: ''} : '';
-        return whereInput;
-    }
     
     /**
      * Create a UserRole object for the guild
@@ -193,14 +182,10 @@ export class DatabaseHelper {
      * @returns true if user has permission, false otherwise
      */
     public async userHasPermission(userId: number, rolesCriteria: Prisma.UserRoleWhereInput[]) {
-        const roles = await this.__prisma.userRole.findMany({
-            where: { OR: rolesCriteria }
-        });
-
         const relations = await this.__prisma.userRelation.findMany({
             where: {
                 userId: userId,
-                role: { OR: roles }
+                role: { OR: rolesCriteria }
             }
         });
         return relations.length > 0;

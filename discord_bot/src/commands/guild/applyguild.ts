@@ -1,6 +1,5 @@
 import { AutocompleteInteraction, ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import { CommandInterface, GetCommandInfo } from "../../CommandInterface";
-import { Prisma } from "@prisma/client";
 
 const options = {
     game: 'game',
@@ -85,14 +84,13 @@ const applyguildCommand: CommandInterface = {
                     break;
                 case options.guild:
                     const gameId = interaction.options.getInteger(options.game)!;
-                    let criteria: Prisma.GuildWhereInput = {
-                        server: server,
-                        gameId: gameId,
-                        active: true
-                    }
-                    databaseHelper.addPlaceholderCriteria(criteria, true);
                     const guilds = await prisma.guild.findMany({
-                        where: criteria
+                        where: {
+                            server: server,
+                            gameId: gameId,
+                            guildId: { not: '' },
+                            active: true   
+                        }
                     });
                     await interaction.respond(
                         guilds.map(guild => ({ name: guild.name, value: guild.id }))
