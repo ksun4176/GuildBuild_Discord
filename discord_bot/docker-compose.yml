@@ -1,0 +1,9 @@
+services:
+  bot:
+    container_name: guild_build_bot_prod
+    build:
+      context: .
+      target: production
+    ports:
+    - "${BOT_PORT}:${BOT_PORT}"
+    env_file: .env

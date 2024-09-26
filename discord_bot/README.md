@@ -54,6 +54,5 @@ If you change the command definition (description, options, etc.), you will need
    - Node does not run on TypeScript so we need to create the corresponding JavaScript files before registering commands
 
 Once you are done with your changes, run these commands in terminal:
-1. Generate corresponding JavaScript files using `npm run build`
-   - Node does not run on TypeScript so we need to create them so it runs
-2. Test that it would work in production using `npm run start`
+1. Rebuild container using `docker-compose -f docker-compose.yml up -d --build`
+2. Access your server and verify changes
