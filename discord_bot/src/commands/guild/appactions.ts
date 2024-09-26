@@ -37,6 +37,7 @@ const appActionCommands: CommandInterface = {
                 .addUserOption(option =>
                     option.setName(options.user)
                         .setDescription('user to accept')
+                        .setRequired(true)
                 )
         )
         .addSubcommand(subcommand =>
@@ -52,6 +53,7 @@ const appActionCommands: CommandInterface = {
                 .addUserOption(option =>
                     option.setName(options.user)
                         .setDescription('user to decline')
+                        .setRequired(true)
                 )
         ),
     
@@ -65,14 +67,12 @@ const appActionCommands: CommandInterface = {
 
         const subcommand = interaction.options.getSubcommand();
         const gameId = interaction.options.getInteger(options.game)!;
-        const guildId = interaction.options.getInteger(options.guild);
-        const userInfo = interaction.options.getUser(options.user);
+        const userInfo = interaction.options.getUser(options.user)!;
         
         try {
             const { prisma, caller, databaseHelper } = await GetCommandInfo(interaction.user);
             const server = await prisma.server.findUniqueOrThrow({ where: { discordId: serverInfo.id } });
-            const guild = await prisma.guild.findUniqueOrThrow({ where: { id: guildId! } });
-            const user = await prisma.user.findUniqueOrThrow({ where: {discordId: userInfo!.id } });
+            const user = await prisma.user.findUniqueOrThrow({ where: {discordId: userInfo.id } });
             const application = await prisma.guildApplicant.findUnique({
                 where: {
                     userId_gameId_serverId: {
@@ -84,6 +84,8 @@ const appActionCommands: CommandInterface = {
             });
             switch (subcommand) {
                 case subcommands.accept:
+                    const guildId = interaction.options.getInteger(options.guild)!;
+                    const guild = await prisma.guild.findUniqueOrThrow({ where: { id: guildId } });
                     await acceptAction(interaction, user, guild, prisma, caller, databaseHelper, application);
                     break;
                 case subcommands.decline:
