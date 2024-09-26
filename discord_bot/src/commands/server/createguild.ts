@@ -35,14 +35,17 @@ const createguildCommand: CommandInterface = {
         .addRoleOption(option =>
             option.setName(options.leadrole)
             .setDescription('role for guild lead')
+            .setRequired(true)
         )
         .addRoleOption(option =>
             option.setName(options.managementrole)
             .setDescription('role for guild management')
+            .setRequired(true)
         )
         .addRoleOption(option =>
             option.setName(options.memberrole)
             .setDescription('role for guild members')
+            .setRequired(true)
         ),
     
     async execute(interaction: ChatInputCommandInteraction) {
@@ -56,9 +59,9 @@ const createguildCommand: CommandInterface = {
         const gameId = interaction.options.getInteger(options.game)!;
         const inGameId = interaction.options.getString(options.ingameid)!;
         const name = interaction.options.getString(options.name)!;
-        const leadRoleInfo = interaction.options.getRole(options.leadrole);
-        const managementRoleInfo = interaction.options.getRole(options.managementrole);
-        const memberRoleInfo = interaction.options.getRole(options.memberrole);
+        const leadRoleInfo = interaction.options.getRole(options.leadrole)!;
+        const managementRoleInfo = interaction.options.getRole(options.managementrole)!;
+        const memberRoleInfo = interaction.options.getRole(options.memberrole)!;
         let errorMessage = 'There was an issue creating the guild.\n';
         try {
             const { prisma, caller, databaseHelper } = await GetCommandInfo(interaction.user);
@@ -103,35 +106,29 @@ const createguildCommand: CommandInterface = {
                 `- Name: ${guild.name}\n` +
                 `- Game: ${guild.game.name}\n`;
             
-            if (leadRoleInfo) {
-                try {
-                    const leadRole = await databaseHelper.createGuildRole(guild, UserRoleType.GuildLead, leadRoleInfo);
-                    message += `- Lead role: <@&${leadRole.discordId}>\n`;
-                }
-                catch (error) {
-                    errorMessage += `- Could not add lead role. Has this role already been used?\n`;
-                    throw error;
-                }
+            try {
+                const leadRole = await databaseHelper.createGuildRole(guild, UserRoleType.GuildLead, leadRoleInfo);
+                message += `- Lead role: <@&${leadRole.discordId}>\n`;
             }
-            if (managementRoleInfo) {
-                try {
-                    const managementRole = await databaseHelper.createGuildRole(guild, UserRoleType.GuildManagement, managementRoleInfo);
-                    message += `- Management role: <@&${managementRole.discordId}>\n`;
-                }
-                catch (error) {
-                    errorMessage += `- Could not add management role. Has this role already been used?\n`;
-                    throw error;
-                }
+            catch (error) {
+                errorMessage += `- Could not add lead role. Has this role already been used?\n`;
+                throw error;
             }
-            if (memberRoleInfo) {
-                try {
-                    const memberRole = await databaseHelper.createGuildRole(guild, UserRoleType.GuildMember, memberRoleInfo);
-                    message += `- Member role: <@&${memberRole.discordId}>\n`;
-                }
-                catch (error) {
-                    errorMessage += `- Could not add member role. Has this role already been used?\n`;
-                    throw error;
-                }
+            try {
+                const managementRole = await databaseHelper.createGuildRole(guild, UserRoleType.GuildManagement, managementRoleInfo);
+                message += `- Management role: <@&${managementRole.discordId}>\n`;
+            }
+            catch (error) {
+                errorMessage += `- Could not add management role. Has this role already been used?\n`;
+                throw error;
+            }
+            try {
+                const memberRole = await databaseHelper.createGuildRole(guild, UserRoleType.GuildMember, memberRoleInfo);
+                message += `- Member role: <@&${memberRole.discordId}>\n`;
+            }
+            catch (error) {
+                errorMessage += `- Could not add member role. Has this role already been used?\n`;
+                throw error;
             }
 
             console.log(message);
